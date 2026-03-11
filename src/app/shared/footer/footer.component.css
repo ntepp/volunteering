@@ -1,16 +1,68 @@
+/* Footer — Océan & Confiance */
 footer {
-    position: fixed; /* Fixer le footer en bas de la page */
-    bottom: 0;
-    left: 0;
-    width: 100%;
+  margin-top: auto;
+  background: #0c4a6e;
+  color: #e0f2fe;
+  padding: 24px 0;
+  box-shadow: 0 -2px 12px rgba(0, 0, 0, 0.15);
+  border-top: 2px solid #0284c7;
+}
+
+footer mat-toolbar {
+  background-color: transparent;
+  color: #e0f2fe;
+  min-height: auto;
+  padding: 0 24px;
+}
+
+footer mat-toolbar-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  width: 100%;
+  min-height: 48px;
+}
+
+.footer-text {
+  font-size: 0.9rem;
+  font-weight: 400;
+  opacity: 0.9;
+}
+
+.footer-links {
+  display: flex;
+  gap: 24px;
+  align-items: center;
+}
+
+.footer-links a {
+  color: #7dd3fc;
+  text-decoration: none;
+  font-size: 0.9rem;
+  font-weight: 400;
+  opacity: 0.9;
+  transition: opacity 0.2s ease, color 0.2s ease;
+}
+
+.footer-links a:hover {
+  opacity: 1;
+  color: #bae6fd;
+  text-decoration: underline;
+}
+
+@media (max-width: 768px) {
+  footer mat-toolbar { padding: 0 16px; }
+  footer mat-toolbar-row {
+    flex-direction: column;
+    gap: 12px;
+    text-align: center;
   }
-  
-  .footer-text {
-    flex: 1; /* Pousser les liens vers la droite */
-  }
-  
-  .footer-links {
-    display: flex; /* Aligner les liens horizontalement */
-    gap: 1rem; /* Espace entre les liens */
-  }
-  
+  .footer-links { gap: 16px; }
+}
+
+@media (max-width: 480px) {
+  footer { padding: 12px 0; }
+  footer mat-toolbar { padding: 0 12px; }
+  .footer-text { font-size: 0.8rem; }
+  .footer-links a { font-size: 0.8rem; }
+}

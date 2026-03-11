@@ -1,1 +1,141 @@
-<p>opportunity-detail works!</p>
+<div class="opportunity-detail-container">
+  
+  <!-- Loading Spinner -->
+  <div *ngIf="isLoading" class="loading-container">
+    <mat-spinner diameter="50"></mat-spinner>
+    <p>Chargement de l'opportunité...</p>
+  </div>
+
+  <!-- Error Message -->
+  <div *ngIf="errorMessage && !isLoading" class="error-container">
+    <mat-icon class="error-icon">error_outline</mat-icon>
+    <p>{{ errorMessage }}</p>
+    <button mat-raised-button color="primary" (click)="onBackToList()">
+      <mat-icon>arrow_back</mat-icon>
+      Retour à la liste
+    </button>
+  </div>
+
+  <!-- Opportunity Detail Card -->
+  <div *ngIf="opportunity && !isLoading" class="opportunity-detail-card">
+    
+    <!-- Header with Back Button -->
+    <div class="detail-header">
+      <button mat-button (click)="onBackToList()" class="back-button">
+        <mat-icon>arrow_back</mat-icon>
+        Retour à la liste
+      </button>
+    </div>
+
+    <!-- Main Opportunity Card -->
+    <mat-card class="opportunity-card">
+      <mat-card-header>
+        <mat-card-title class="opportunity-title">{{ opportunity.title }}</mat-card-title>
+        <mat-card-subtitle class="opportunity-subtitle">
+          <mat-icon>location_on</mat-icon>
+          {{ opportunity.town }}
+        </mat-card-subtitle>
+      </mat-card-header>
+
+      <mat-card-content>
+        <!-- Description -->
+        <div class="content-section">
+          <h3 class="section-title">
+            <mat-icon>description</mat-icon>
+            Description
+          </h3>
+          <p class="description-text">{{ opportunity.description }}</p>
+        </div>
+
+        <!-- Location & Dates -->
+        <div class="info-grid">
+          <div class="info-item">
+            <mat-icon class="info-icon">location_on</mat-icon>
+            <div class="info-content">
+              <span class="info-label">Lieu</span>
+              <span class="info-value">{{ opportunity.location }}</span>
+              <span class="info-subvalue">{{ opportunity.town }}</span>
+            </div>
+          </div>
+
+          <div class="info-item">
+            <mat-icon class="info-icon">event</mat-icon>
+            <div class="info-content">
+              <span class="info-label">Période</span>
+              <span class="info-value">{{ opportunity.startDate | date:'dd/MM/yyyy' }}</span>
+              <span class="info-subvalue">au {{ opportunity.endDate | date:'dd/MM/yyyy' }}</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Requirements -->
+        <div class="content-section">
+          <h3 class="section-title">
+            <mat-icon>assignment</mat-icon>
+            Exigences
+          </h3>
+          <p class="requirements-text">{{ opportunity.requirements }}</p>
+        </div>
+
+        <!-- Skills Required -->
+        <div class="content-section" *ngIf="opportunity.skillsRequired && opportunity.skillsRequired.length > 0">
+          <h3 class="section-title">
+            <mat-icon>psychology</mat-icon>
+            Compétences requises
+          </h3>
+          <div class="skills-container">
+            <div class="skill-chip" *ngFor="let skill of opportunity.skillsRequired">
+              <span class="skill-name">{{ skill.name }}</span>
+              <span class="skill-level">{{ skill.level }}</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Categories -->
+        <div class="content-section" *ngIf="opportunity.categories && opportunity.categories.length > 0">
+          <h3 class="section-title">
+            <mat-icon>category</mat-icon>
+            Catégories
+          </h3>
+          <div class="categories-container">
+            <span class="category-chip" *ngFor="let category of opportunity.categories">
+              {{ category.name }}
+            </span>
+          </div>
+        </div>
+      </mat-card-content>
+
+      <!-- Action Buttons -->
+      <mat-card-actions class="card-actions">
+        <div class="action-buttons">
+          
+          <!-- Apply Button -->
+          <button mat-raised-button 
+                  color="primary" 
+                  class="apply-button"
+                  [disabled]="isApplying || hasApplied"
+                  (click)="apply()">
+            <mat-spinner diameter="20" *ngIf="isApplying" class="button-spinner"></mat-spinner>
+            <mat-icon *ngIf="!isApplying && !hasApplied" class="button-icon">send</mat-icon>
+            <mat-icon *ngIf="!isApplying && hasApplied" class="button-icon">check_circle</mat-icon>
+            <span *ngIf="isApplying">Candidature en cours...</span>
+            <span *ngIf="!isApplying && !hasApplied">Postuler</span>
+            <span *ngIf="!isApplying && hasApplied">Déjà postulé</span>
+          </button>
+
+          <!-- Application Status -->
+          <div *ngIf="hasApplied && applicationStatus" class="status-container">
+            <div class="status-badge" [ngClass]="'status-' + applicationStatus">
+              <mat-icon class="status-icon">{{ 
+                applicationStatus === 'PENDING' ? 'schedule' : 
+                applicationStatus === 'ACCEPTED' ? 'check_circle' : 
+                'cancel' 
+              }}</mat-icon>
+              <span class="status-text">Statut : {{ getApplicationStatusText() }}</span>
+            </div>
+          </div>
+        </div>
+      </mat-card-actions>
+    </mat-card>
+  </div>
+</div>

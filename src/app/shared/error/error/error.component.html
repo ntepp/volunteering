@@ -1,1 +1,4 @@
-<div>{{message}}</div>
+<div class="error-container" role="alert" *ngIf="message">
+  <mat-icon class="error-icon">error_outline</mat-icon>
+  <span class="error-text">{{ message }}</span>
+</div>

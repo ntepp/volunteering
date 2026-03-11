@@ -1,32 +1,156 @@
-/* You can add global styles to this file, and also import other style files */
-@import 'bootstrap/dist/css/bootstrap.min.css';
-@import url(@angular/material/prebuilt-themes/azure-blue.css);
-html, body { height: 100%; }
+/* ===== CSS Variables — Océan & Confiance ===== */
+:root {
+  --color-bg: #f0f9ff;
+  --color-surface: #ffffff;
+  --color-primary: #0284c7;
+  --color-primary-dark: #0369a1;
+  --color-primary-light: #e0f2fe;
+  --color-primary-border: #bae6fd;
+  --color-warm: #f97316;
+  --color-warm-dark: #ea580c;
+  --color-text: #0c1a2e;
+  --color-text-muted: #64748b;
+  --color-border: #bae6fd;
+  --color-error: #dc2626;
+  --color-error-bg: #fef2f2;
+}
+
+html, body {
+  height: 100%;
+}
 
 body {
-    margin: 0; 
-    font-family: Roboto, "Helvetica Neue", sans-serif;
-    background-color: rgb(244,244,244);
+  margin: 0;
+  font-family: Roboto, "Helvetica Neue", sans-serif;
+  background: var(--color-bg);
+  color: var(--color-text);
+  min-height: 100vh;
 }
 
+/* ===== Material MDC — couleur primaire océan ===== */
+/* Boutons filled */
+.mat-mdc-raised-button.mat-primary,
+.mat-mdc-unelevated-button.mat-primary {
+  --mdc-filled-button-container-color: #0284c7;
+  --mdc-filled-button-label-text-color: #ffffff;
+}
+/* Boutons outlined */
+.mat-mdc-outlined-button.mat-primary {
+  --mdc-outlined-button-label-text-color: #0284c7;
+  --mdc-outlined-button-outline-color: #0284c7;
+}
+/* Liens / text buttons */
+.mat-mdc-button.mat-primary {
+  --mdc-text-button-label-text-color: #0284c7;
+}
+/* Progress spinner */
+.mat-mdc-progress-spinner circle {
+  stroke: #0284c7 !important;
+}
+/* Checkbox */
+.mat-mdc-checkbox.mat-primary {
+  --mdc-checkbox-selected-checkmark-color: #fff;
+  --mdc-checkbox-selected-focus-icon-color: #0284c7;
+  --mdc-checkbox-selected-hover-icon-color: #0284c7;
+  --mdc-checkbox-selected-icon-color: #0284c7;
+  --mdc-checkbox-selected-pressed-icon-color: #0284c7;
+}
+/* Form field focus */
+.mat-mdc-form-field.mat-focused .mat-mdc-floating-label {
+  color: #0284c7 !important;
+}
+.mat-mdc-form-field.mat-focused .mdc-notched-outline__leading,
+.mat-mdc-form-field.mat-focused .mdc-notched-outline__notch,
+.mat-mdc-form-field.mat-focused .mdc-notched-outline__trailing {
+  border-color: #0284c7 !important;
+}
+
+/* ===== Menus déroulants Material ===== */
+.mat-mdc-menu-panel {
+  background: #ffffff !important;
+}
+.mat-mdc-menu-item {
+  color: #0c1a2e !important;
+}
+.mat-mdc-menu-item:hover:not([disabled]) {
+  background: #e0f2fe !important;
+}
+.mat-mdc-menu-item .mat-icon {
+  color: #0284c7 !important;
+}
+
+/* ===== Select panel ===== */
+.mat-mdc-select-panel {
+  background: #ffffff !important;
+}
+.mat-mdc-option {
+  color: #0c1a2e !important;
+}
+.mat-mdc-option.mdc-list-item--selected:not(.mdc-list-item--disabled) {
+  background: #e0f2fe !important;
+  color: #0284c7 !important;
+}
+.mat-mdc-option:hover:not(.mdc-list-item--disabled) {
+  background: #f0f9ff !important;
+}
+
+/* ===== Snackbars ===== */
+.success-snackbar {
+  background-color: #4caf50 !important;
+  color: white !important;
+}
+.success-snackbar .mat-simple-snackbar-action {
+  color: white !important;
+}
+.error-snackbar {
+  background-color: #f44336 !important;
+  color: white !important;
+}
+.error-snackbar .mat-simple-snackbar-action {
+  color: white !important;
+}
+.mat-mdc-snack-bar-container {
+  border-radius: 8px !important;
+}
+.mat-mdc-snack-bar-container .mdc-snackbar__surface {
+  border-radius: 8px !important;
+}
+
+/* ===== Layout utilities ===== */
 .container {
-   padding: 50px;
-   max-width: 1200px;
-   height: auto;
-   margin: auto;
+  padding: 50px;
+  max-width: 1200px;
+  height: auto;
+  margin: auto;
 }
-
 .container-sm {
-   padding: 50px;
-   max-width: 800px;
-   margin: auto;
+  padding: 50px;
+  max-width: 800px;
+  margin: auto;
+}
+.text-center { text-align: center; }
+.text-right  { text-align: right; }
+
+/* ===== Material base styles ===== */
+.mat-mdc-form-field {
+  width: 100%;
+}
+.mat-mdc-raised-button {
+  border-radius: 8px;
+  font-weight: 500;
+  text-transform: none;
+}
+.mat-mdc-button {
+  border-radius: 8px;
+  text-transform: none;
+}
+.mat-mdc-card {
+  border-radius: 12px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
 }
 
-.text-center {
-   text-align: center;
+/* ===== Responsive ===== */
+@media (max-width: 768px) {
+  .container    { padding: 20px; }
+  .container-sm { padding: 20px; }
 }
-
-.text-right {
-   text-align: right;
-}
-

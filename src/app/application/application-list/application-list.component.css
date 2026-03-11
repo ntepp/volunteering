@@ -1,0 +1,152 @@
+.application-list-container {
+  padding: 24px;
+  max-width: 900px;
+  margin: 0 auto;
+}
+
+.page-header {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 32px;
+}
+
+.header-icon {
+  font-size: 32px;
+  width: 32px;
+  height: 32px;
+  color: #0284c7;
+}
+
+.page-title {
+  font-size: 1.75rem;
+  font-weight: 700;
+  color: #0c1a2e;
+  margin: 0;
+}
+
+/* Chargement */
+.loading-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 16px;
+  padding: 60px 24px;
+  color: #64748b;
+}
+
+/* Erreur */
+.error-container {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 16px;
+  background: #fef2f2;
+  border-left: 4px solid #dc2626;
+  border-radius: 8px;
+  color: #b91c1c;
+}
+.error-icon { color: #dc2626; }
+
+/* Grille */
+.applications-grid {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.application-card {
+  border: 1px solid #bae6fd;
+  border-radius: 12px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+.application-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 20px rgba(2, 132, 199, 0.12);
+  border-color: #0284c7;
+}
+
+.card-top {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 16px;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.opportunity-ref {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  color: #0c1a2e;
+  font-size: 0.95rem;
+}
+.ref-icon { font-size: 18px; color: #0284c7; }
+
+/* Badges de statut */
+.status-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 4px 12px;
+  border-radius: 20px;
+  font-size: 0.82rem;
+  font-weight: 600;
+}
+.badge-pending  { background: #fff7ed; color: #c2410c; border: 1px solid #fdba74; }
+.badge-accepted { background: #e0f2fe; color: #0284c7; border: 1px solid #7dd3fc; }
+.badge-rejected { background: #fef2f2; color: #b91c1c; border: 1px solid #fca5a5; }
+.badge-icon { font-size: 16px; }
+
+.card-dates {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 16px;
+}
+.date-item {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 0.85rem;
+  color: #64748b;
+}
+.date-item mat-icon { font-size: 16px; color: #0284c7; }
+
+/* État vide */
+.empty-state {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 72px 24px;
+  text-align: center;
+  background: #ffffff;
+  border-radius: 16px;
+  border: 1px dashed #bae6fd;
+}
+.empty-icon {
+  font-size: 64px;
+  width: 64px;
+  height: 64px;
+  color: #bae6fd;
+  margin-bottom: 16px;
+}
+.empty-title {
+  font-size: 1.3rem;
+  font-weight: 700;
+  color: #0c1a2e;
+  margin: 0 0 8px 0;
+}
+.empty-subtitle {
+  font-size: 0.95rem;
+  color: #64748b;
+  margin: 0 0 24px 0;
+}
+
+@media (max-width: 600px) {
+  .application-list-container { padding: 16px; }
+  .page-title { font-size: 1.4rem; }
+  .card-top { flex-direction: column; align-items: flex-start; }
+}

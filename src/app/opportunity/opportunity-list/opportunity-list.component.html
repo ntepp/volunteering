@@ -1,24 +1,94 @@
-<div>
-    <div class="opportunities" *ngFor="let opportunities of opportunityPagination.opportunities">
-        <mat-card class="opportunity-card" appearance="outlined">
-            <mat-card-header>
-              <div mat-card-avatar class="example-header-image"></div>
-              <mat-card-title>Shiba Inu</mat-card-title>
-              <mat-card-subtitle>Dog Breed</mat-card-subtitle>
-            </mat-card-header>
-            <img mat-card-image src="https://material.angular.io/assets/img/examples/shiba2.jpg" alt="Photo of a Shiba Inu">
-            <mat-card-content>
-              <p>
-                The Shiba Inu is the smallest of the six original and distinct spitz breeds of dog from Japan.
-                A small, agile dog that copes very well with mountainous terrain, the Shiba Inu was originally
-                bred for hunting.
-              </p>
-            </mat-card-content>
-            <mat-card-actions>
-              <button mat-button>LIKE</button>
-              <button mat-button>SHARE</button>
-            </mat-card-actions>
-          </mat-card>
-          
+<div class="opportunity-list-container">
+  
+  <!-- Filtres -->
+  <form [formGroup]="filtersForm" class="filters-form">
+    <mat-form-field appearance="outline">
+      <mat-label>Catégorie</mat-label>
+      <mat-select formControlName="categoryId">
+        <mat-option [value]="null">Toutes</mat-option>
+        <mat-option *ngFor="let cat of categories" [value]="cat.id">{{cat.name}}</mat-option>
+      </mat-select>
+    </mat-form-field>
+
+    <mat-form-field appearance="outline">
+      <mat-label>Ville</mat-label>
+      <input matInput formControlName="town" placeholder="Ex: Paris">
+    </mat-form-field>
+
+    <mat-form-field appearance="outline">
+      <mat-label>Date de début</mat-label>
+      <input matInput [matDatepicker]="startPicker" formControlName="startDate" placeholder="Choisir une date">
+      <mat-datepicker-toggle matSuffix [for]="startPicker"></mat-datepicker-toggle>
+      <mat-datepicker #startPicker></mat-datepicker>
+    </mat-form-field>
+
+    <mat-form-field appearance="outline" class="title-field">
+      <mat-label>Titre</mat-label>
+      <input matInput formControlName="title" placeholder="Ex: Collecte de dons">
+    </mat-form-field>
+
+    <div class="apply-button">
+      <button mat-raised-button color="primary" type="button" (click)="onApplyFilters()">
+        Appliquer les filtres
+      </button>
     </div>
+  </form>
+
+  <!-- État de chargement -->
+  <div class="loading" *ngIf="isLoading">
+    <mat-spinner diameter="40"></mat-spinner>
+  </div>
+
+  <!-- Message d'erreur -->
+  <div class="error" *ngIf="!isLoading && errorMessage">
+    <mat-icon>error</mat-icon>
+    {{errorMessage}}
+  </div>
+
+  <!-- Grille des opportunités -->
+  <div class="opportunities" *ngIf="!isLoading && !errorMessage">
+    <div class="opportunity" *ngFor="let opportunity of opportunityPagination.opportunities">
+      <mat-card class="opportunity-card" appearance="outlined">
+        <mat-card-header>
+          <div class="placeholder-image" mat-card-avatar>
+            <mat-icon class="placeholder-icon">volunteer_activism</mat-icon>
+          </div>
+          <mat-card-title>{{opportunity.title}}</mat-card-title>
+          <mat-card-subtitle>{{opportunity.town}}</mat-card-subtitle>
+        </mat-card-header>
+        <mat-card-content>
+          <p class="description">{{opportunity.description}}</p>
+          <div class="meta">
+            <span class="label">Début :</span> {{opportunity.startDate | date:'dd/MM/yyyy'}}
+            &nbsp;·&nbsp;
+            <span class="label">Fin :</span> {{opportunity.endDate | date:'dd/MM/yyyy'}}
+          </div>
+        </mat-card-content>
+        <mat-card-actions align="end">
+          <button mat-button 
+                  color="primary" 
+                  (click)="navigateToDetail(opportunity.id!)"
+                  [disabled]="!opportunity.id">
+            <mat-icon>visibility</mat-icon>
+            Détails
+          </button>
+        </mat-card-actions>
+      </mat-card>
+    </div>
+
+    <!-- Vide -->
+    <div class="empty" *ngIf="opportunityPagination.opportunities?.length === 0">
+      <mat-icon>inbox</mat-icon>
+      Aucune opportunité trouvée avec ces filtres.
+    </div>
+  </div>
+
+  <!-- Pagination -->
+  <mat-paginator
+    [length]="opportunityPagination.totalItems || 0"
+    [pageIndex]="opportunityPagination.currentPage || 0"
+    [pageSize]="opportunityPagination.itemsPerPage || 10"
+    [pageSizeOptions]="[5,10,20]"
+    (page)="onPageChange($event)">
+  </mat-paginator>
 </div>

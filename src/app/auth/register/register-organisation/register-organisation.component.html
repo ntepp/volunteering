@@ -1,0 +1,138 @@
+<div class="register-container">
+  <div class="register-content">
+    
+    <!-- En-tête -->
+    <div class="register-header">
+      <h1 class="register-title">
+        <mat-icon class="title-icon">business</mat-icon>
+        Inscription Organisation
+      </h1>
+      <p class="register-subtitle">Créez un compte pour votre organisation</p>
+    </div>
+
+    <!-- Formulaire d'inscription -->
+    <mat-card class="register-card">
+      <mat-card-content>
+        <form [formGroup]="registerForm" (ngSubmit)="onSubmit()">
+          
+          <!-- Informations de connexion -->
+          <div class="form-section">
+            <h3 class="section-title">
+              <mat-icon class="section-icon">account_circle</mat-icon>
+              Informations de connexion
+            </h3>
+            
+            <div class="form-row">
+              <mat-form-field appearance="outline" class="form-field">
+                <mat-label>Nom d'utilisateur *</mat-label>
+                <input matInput formControlName="username" placeholder="Ex: mon_organisation">
+                <mat-error *ngIf="hasError('username', 'required')">
+                  Le nom d'utilisateur est obligatoire
+                </mat-error>
+                <mat-error *ngIf="hasError('username', 'minlength')">
+                  Minimum 3 caractères
+                </mat-error>
+              </mat-form-field>
+
+              <mat-form-field appearance="outline" class="form-field">
+                <mat-label>Email *</mat-label>
+                <input matInput type="email" formControlName="email" placeholder="Ex: contact@organisation.com">
+                <mat-error *ngIf="hasError('email', 'required')">
+                  L'email est obligatoire
+                </mat-error>
+                <mat-error *ngIf="hasError('email', 'email')">
+                  Format d'email invalide
+                </mat-error>
+              </mat-form-field>
+            </div>
+
+            <div class="form-row">
+              <mat-form-field appearance="outline" class="form-field">
+                <mat-label>Mot de passe *</mat-label>
+                <input matInput type="password" formControlName="password" placeholder="Minimum 6 caractères">
+                <mat-error *ngIf="hasError('password', 'required')">
+                  Le mot de passe est obligatoire
+                </mat-error>
+                <mat-error *ngIf="hasError('password', 'minlength')">
+                  Minimum 6 caractères
+                </mat-error>
+              </mat-form-field>
+            </div>
+          </div>
+
+          <!-- Informations de l'organisation -->
+          <div class="form-section">
+            <h3 class="section-title">
+              <mat-icon class="section-icon">business</mat-icon>
+              Informations de l'organisation
+            </h3>
+            
+            <mat-form-field appearance="outline" class="full-width">
+              <mat-label>Nom de l'organisation *</mat-label>
+              <input matInput formControlName="orgName" placeholder="Ex: Association Solidarité">
+              <mat-error *ngIf="hasError('orgName', 'required')">
+                Le nom de l'organisation est obligatoire
+              </mat-error>
+            </mat-form-field>
+
+            <div class="form-row">
+              <mat-form-field appearance="outline" class="form-field">
+                <mat-label>Téléphone *</mat-label>
+                <input matInput type="tel" formControlName="phone" placeholder="Ex: 0123456789">
+                <mat-error *ngIf="hasError('phone', 'required')">
+                  Le téléphone est obligatoire
+                </mat-error>
+              </mat-form-field>
+
+              <mat-form-field appearance="outline" class="form-field">
+                <mat-label>Adresse</mat-label>
+                <input matInput formControlName="address" placeholder="Ex: 123 Rue de la Paix, Paris">
+              </mat-form-field>
+            </div>
+          </div>
+
+          <!-- Informations complémentaires -->
+          <div class="form-section">
+            <h3 class="section-title">
+              <mat-icon class="section-icon">info</mat-icon>
+              Informations complémentaires
+            </h3>
+            
+            <mat-form-field appearance="outline" class="full-width">
+              <mat-label>Biographie</mat-label>
+              <textarea matInput formControlName="bio" rows="3" placeholder="Présentez votre organisation..."></textarea>
+            </mat-form-field>
+          </div>
+
+          <!-- Messages d'erreur -->
+          <div *ngIf="errorMessage" class="error-message">
+            <mat-icon class="error-icon">error</mat-icon>
+            {{errorMessage}}
+          </div>
+
+          <!-- Boutons d'action -->
+          <div class="action-buttons">
+            <button mat-button type="button" (click)="onCancel()">
+              <mat-icon class="button-icon">arrow_back</mat-icon>
+              Retour
+            </button>
+            
+            <button mat-raised-button 
+                    color="primary" 
+                    type="submit"
+                    [disabled]="isSubmitting || !registerForm.valid">
+              <mat-spinner diameter="20" *ngIf="isSubmitting" class="button-spinner"></mat-spinner>
+              <mat-icon *ngIf="!isSubmitting" class="button-icon">person_add</mat-icon>
+              {{isSubmitting ? 'Inscription en cours...' : 'S\'inscrire'}}
+            </button>
+          </div>
+        </form>
+      </mat-card-content>
+    </mat-card>
+
+    <!-- Lien vers la connexion -->
+    <div class="login-link">
+      <p>Déjà un compte ? <a routerLink="/login">Se connecter</a></p>
+    </div>
+  </div>
+</div>

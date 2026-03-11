@@ -1,1 +1,31 @@
-<p>view-opportunity-dialog works!</p>
+<h2 mat-dialog-title>
+  <mat-icon style="vertical-align:middle; margin-right:8px; color:#0284c7">info_outline</mat-icon>
+  Détails de l'opportunité
+</h2>
+
+<div mat-dialog-content>
+  <div class="dialog-field">
+    <span class="dialog-label">Titre</span>
+    <span class="dialog-value">{{ data.title }}</span>
+  </div>
+  <div class="dialog-field">
+    <span class="dialog-label">Description</span>
+    <span class="dialog-value">{{ data.description }}</span>
+  </div>
+  <div class="dialog-field">
+    <span class="dialog-label">Lieu</span>
+    <span class="dialog-value">{{ data.location }}{{ data.town ? ', ' + data.town : '' }}</span>
+  </div>
+  <div class="dialog-field">
+    <span class="dialog-label">Période</span>
+    <span class="dialog-value">{{ data.startDate | date:'dd/MM/yyyy' }} → {{ data.endDate | date:'dd/MM/yyyy' }}</span>
+  </div>
+  <div class="dialog-field" *ngIf="data.requirements">
+    <span class="dialog-label">Exigences</span>
+    <span class="dialog-value">{{ data.requirements }}</span>
+  </div>
+</div>
+
+<div mat-dialog-actions align="end">
+  <button mat-button mat-dialog-close>Fermer</button>
+</div>

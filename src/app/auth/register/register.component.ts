@@ -1,117 +1,176 @@
-import { Component, OnInit } from '@angular/core';
-import { AbstractControl, FormBuilder, ReactiveFormsModule, ValidatorFn,
-   Validators, FormGroup, AbstractControlOptions, 
-   ValidationErrors} from '@angular/forms';
-import { NgClass, NgIf } from '@angular/common';
-import { User } from '../../models/user.model';
-import { RegistrationService } from './service/registration.service';
-import { debounceTime } from 'rxjs';
+import { Component, OnInit, OnDestroy } from '@angular/core';
+import { FormBuilder, FormGroup, Validators, ReactiveFormsModule } from '@angular/forms';
+import { CommonModule } from '@angular/common';
+import { Router, RouterModule } from '@angular/router';
+import { MatSnackBar } from '@angular/material/snack-bar';
+import { MatCardModule } from '@angular/material/card';
+import { MatFormFieldModule } from '@angular/material/form-field';
+import { MatInputModule } from '@angular/material/input';
+import { MatSelectModule } from '@angular/material/select';
+import { MatButtonModule } from '@angular/material/button';
+import { MatIconModule } from '@angular/material/icon';
+import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
+import { Subject, takeUntil } from 'rxjs';
 
-function passwordMatcher(c: AbstractControl): { [key: string]: boolean } | null {
-  const password = c.get('password');
-  const confirmPassword = c.get('confirmPassword');
-  // Utiliser || pour vérifier si l'un ou l'autre est pristine
-  if (password?.pristine || confirmPassword?.pristine) {
-    return null;
-  }
-  // Vérifier si les mots de passe sont identiques
-  if (password?.value === confirmPassword?.value) {
-    return null;
-  }
-  return { 'match': true };
-}
-
-function ageValidator(control: AbstractControl): ValidationErrors | null {
-  const birthDate = new Date(control.value);
-  const today = new Date();
-  const minAgeDate = new Date(today.getFullYear() - 15, today.getMonth(), today.getDate());
-
-  return birthDate > minAgeDate ? { underage: true } : null;
-}
+import { AuthService } from '../services/auth.service';
 
 @Component({
   selector: 'app-register',
   standalone: true,
-  imports: [NgClass, NgIf, ReactiveFormsModule],
+  imports: [
+    CommonModule,
+    ReactiveFormsModule,
+    RouterModule,
+    MatCardModule,
+    MatFormFieldModule,
+    MatInputModule,
+    MatSelectModule,
+    MatButtonModule,
+    MatIconModule,
+    MatProgressSpinnerModule
+  ],
   templateUrl: './register.component.html',
   styleUrls: ['./register.component.css']
 })
-export class RegisterComponent implements OnInit {
-  public user: User = new User();
-  public registerForm!: FormGroup;
-  public errorMsg!: string;
-  public confirmationMsg! : string;
+export class RegisterComponent implements OnInit, OnDestroy {
+  
+  registerForm!: FormGroup;
+  isSubmitting = false;
+  errorMessage = '';
+  
+  // Options pour le rôle: A prendre depuis l'API
+  roleOptions = [
+    { value: 'VOLUNTEER', label: 'Volontaire' },
+    { value: 'ORGANIZATION', label: 'Organisation' }
+  ];
 
-  private validationErrorsMessages = {
-    required: 'Ce champ est requis',
-    email: 'L\'E-Mail est invalide exemple d\'email "smak@gmail.com"',
-    minlength: 'Minimum 4 caractères',
-    maxlength: 'Maximum 20 caractères',
-    rangeError: 'La note doit être entre 1 et 5',
-    match: 'Les mots de passe ne correspondent pas'
-  };
+  private destroy$ = new Subject<void>();
 
-  constructor(private fb: FormBuilder, private registrationService: RegistrationService) { }
+  constructor(
+    private fb: FormBuilder,
+    private authService: AuthService,
+    private router: Router,
+    private snackBar: MatSnackBar
+  ) {}
 
   ngOnInit(): void {
+    this.initForm();
+  }
+
+  ngOnDestroy(): void {
+    this.destroy$.next();
+    this.destroy$.complete();
+  }
+
+  private initForm(): void {
     this.registerForm = this.fb.group({
+      username: ['', [Validators.required, Validators.minLength(3)]],
       email: ['', [Validators.required, Validators.email]],
-      firstName: ['', [Validators.required, Validators.maxLength(20)]],
-      lastName: ['', [Validators.required, Validators.minLength(4)]],
-      phone: ['', [Validators.required]],
-      ville: ['', [Validators.required]],
-      created_at: ['', [Validators.required, ageValidator]],
-      passwordGroup: this.fb.group({
-        password: ['', [Validators.required, Validators.minLength(6)]],
-        confirmPassword: ['', [Validators.required]]
-      }, { validators: passwordMatcher }as AbstractControlOptions),
-    
+      password: ['', [Validators.required, Validators.minLength(6)]],
+      role: ['VOLUNTEER', [Validators.required]],
+      firstName: ['', [Validators.required]],
+      lastName: ['', [Validators.required]],
+      orgName: [''],
+      bio: [''],
+      address: [''],
+      phone: ['', [Validators.required]]
     });
-
-    this.registerForm.get('email')?.valueChanges.pipe(debounceTime(1500)).subscribe(val => {
-      this.setMessage(this.registerForm.get('email'));
-    });
-    
   }
- 
 
-  public saveData(): void {
-    if (this.registerForm.valid) {
-      this.registrationService.register(this.registerForm.value).subscribe({
-        next: (response) =>{
-           console.log('User registered successfully', response),
-           this.confirmationMsg = 'Votre inscription a été réussie !';
+  onSubmit(): void {
+    if (this.registerForm.valid && !this.isSubmitting) {
+      this.isSubmitting = true;
+      this.errorMessage = '';
+
+      const formValue = this.registerForm.value;
+      
+      // Préparation des données pour l'API
+      const userData = {
+        username: formValue.username,
+        email: formValue.email,
+        password: formValue.password,
+        role: formValue.role,
+        firstName: formValue.firstName,
+        lastName: formValue.lastName,
+        orgName: formValue.orgName || null,
+        bio: formValue.bio || null,
+        address: formValue.address || null,
+        phone: formValue.phone
+      };
+
+      this.authService.signup(userData)
+        .pipe(takeUntil(this.destroy$))
+        .subscribe({
+          next: (response) => {
+            this.isSubmitting = false;
+            this.showSuccessMessage();
+            this.redirectToLogin();
           },
-        error:(err) =>{
-           console.error('Error registering user', err),
-           this.confirmationMsg = ' Erreur lors de l\'inscription. Veuillez réessayer.';
-           if (err.error) {
-            console.log('Détails de l\'erreur :', err.error);
+          error: (error) => {
+            this.isSubmitting = false;
+            this.errorMessage = error.message;
+            this.showErrorMessage(error.message);
           }
-        },
-      });
+        });
+    } else {
+      this.markFormGroupTouched();
+      this.errorMessage = 'Veuillez corriger les erreurs dans le formulaire.';
     }
-    console.log(this.registerForm);
-    console.log('valeurs : ', JSON.stringify(this.registerForm.value));
   }
 
-  private setMessage(control: AbstractControl | null): void {
-    this.errorMsg = '';
-    const validationMessages = this.validationErrorsMessages;
-  
-    // Vérifier le contrôle principal et les sous-contrôles
-    if (control instanceof FormGroup) {
-      Object.keys(control.controls).forEach(key => {
-        this.setMessage(control.get(key));
-      });
-    }
-  
-    if ((control?.touched || control?.dirty) && control?.errors) {
-      this.errorMsg = Object.keys(control.errors).map(
-        key => validationMessages[key as keyof typeof validationMessages]
-      ).join(' ');
-    }
+  private markFormGroupTouched(): void {
+    Object.keys(this.registerForm.controls).forEach(key => {
+      const control = this.registerForm.get(key);
+      control?.markAsTouched();
+    });
   }
-  
-  
+
+  private showSuccessMessage(): void {
+    this.snackBar.open('Inscription réussie ✅', 'Fermer', {
+      duration: 5000,
+      horizontalPosition: 'center',
+      verticalPosition: 'top',
+      panelClass: ['success-snackbar']
+    });
+  }
+
+  private showErrorMessage(message: string): void {
+    this.snackBar.open(message, 'Fermer', {
+      duration: 8000,
+      horizontalPosition: 'center',
+      verticalPosition: 'top',
+      panelClass: ['error-snackbar']
+    });
+  }
+
+  private redirectToLogin(): void {
+    setTimeout(() => {
+      this.router.navigate(['/login']);
+    }, 2000);
+  }
+
+  hasError(controlName: string, errorType: string): boolean {
+    const control = this.registerForm.get(controlName);
+    return control ? control.hasError(errorType) && control.touched : false;
+  }
+
+  getErrorMessage(controlName: string): string {
+    const control = this.registerForm.get(controlName);
+    if (control && control.errors && control.touched) {
+      if (control.errors['required']) {
+        return 'Ce champ est obligatoire';
+      }
+      if (control.errors['email']) {
+        return 'Format d\'email invalide';
+      }
+      if (control.errors['minlength']) {
+        return `Minimum ${control.errors['minlength'].requiredLength} caractères`;
+      }
+    }
+    return '';
+  }
+
+  onCancel(): void {
+    this.router.navigate(['/login']);
+  }
 }

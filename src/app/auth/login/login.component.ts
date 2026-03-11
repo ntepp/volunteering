@@ -1,25 +1,179 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, OnDestroy } from '@angular/core';
+import { FormBuilder, FormGroup, Validators, ReactiveFormsModule } from '@angular/forms';
+import { CommonModule } from '@angular/common';
+import { Router, RouterModule } from '@angular/router';
+import { MatSnackBar } from '@angular/material/snack-bar';
+import { MatCardModule } from '@angular/material/card';
+import { MatFormFieldModule } from '@angular/material/form-field';
+import { MatInputModule } from '@angular/material/input';
+import { MatButtonModule } from '@angular/material/button';
+import { MatIconModule } from '@angular/material/icon';
+import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
+import { Subject, takeUntil } from 'rxjs';
 
-import { FormsModule, NgForm } from '@angular/forms';
-import { NgClass, NgIf } from '@angular/common';
-import { UserLogin } from '../../models/user-login.model';
+import { AuthService } from '../services/auth.service';
 
 @Component({
   selector: 'app-login',
   standalone: true,
-  imports: [ FormsModule, NgClass, NgIf],
+  imports: [
+    CommonModule,
+    ReactiveFormsModule,
+    RouterModule,
+    MatCardModule,
+    MatFormFieldModule,
+    MatInputModule,
+    MatButtonModule,
+    MatIconModule,
+    MatProgressSpinnerModule
+  ],
   templateUrl: './login.component.html',
-  styleUrl: './login.component.css'
+  styleUrls: ['./login.component.css']
 })
-export class LoginComponent implements OnInit{
-  public user : UserLogin = new UserLogin();
+export class LoginComponent implements OnInit, OnDestroy {
+  
+  loginForm!: FormGroup;
+  isSubmitting = false;
+  errorMessage = '';
+  
+  private destroy$ = new Subject<void>();
 
-  public saveData(connectionForm : NgForm){
-    console.log(connectionForm.form)
-    console.log('valeurs : ', JSON.stringify(connectionForm.value))
-  }
+  constructor(
+    private fb: FormBuilder,
+    private authService: AuthService,
+    private router: Router,
+    private snackBar: MatSnackBar
+  ) {}
 
   ngOnInit(): void {
-    
+    this.initForm();
+    this.checkExistingAuth();
+  }
+
+  ngOnDestroy(): void {
+    this.destroy$.next();
+    this.destroy$.complete();
+  }
+
+  private initForm(): void {
+    this.loginForm = this.fb.group({
+      email: ['', [Validators.required, Validators.email]],
+      password: ['', [Validators.required, Validators.minLength(6)]]
+    });
+  }
+
+  private checkExistingAuth(): void {
+    // Bonus : Rediriger automatiquement si déjà connecté
+    // Vérifier que nous sommes dans un environnement navigateur
+    if (typeof window !== 'undefined' && this.authService.isAuthenticated()) {
+      this.router.navigate(['/volunteering/opportunities']);
+    }
+  }
+
+  onSubmit(): void {
+    if (this.loginForm.valid && !this.isSubmitting) {
+      this.isSubmitting = true;
+      this.errorMessage = '';
+
+      const credentials = {
+        email: this.loginForm.value.email,
+        password: this.loginForm.value.password
+      };
+
+      this.authService.login(credentials)
+        .pipe(takeUntil(this.destroy$))
+        .subscribe({
+          next: (response) => {
+            this.isSubmitting = false;
+            
+            // Sauvegarder le token et les données utilisateur
+            if (response.token && response.user) {
+              this.authService.saveUserData(response);
+              this.showSuccessMessage();
+              this.redirectBasedOnRole(response);
+            } else {
+              this.showErrorMessage('Réponse du serveur invalide');
+            }
+          },
+          error: (error) => {
+            this.isSubmitting = false;
+            this.errorMessage = error.message;
+            this.showErrorMessage(error.message);
+          }
+        });
+    } else {
+      this.markFormGroupTouched();
+      this.errorMessage = 'Veuillez corriger les erreurs dans le formulaire.';
+    }
+  }
+
+  private markFormGroupTouched(): void {
+    Object.keys(this.loginForm.controls).forEach(key => {
+      const control = this.loginForm.get(key);
+      control?.markAsTouched();
+    });
+  }
+
+  private showSuccessMessage(): void {
+    this.snackBar.open('Connexion réussie ✅', 'Fermer', {
+      duration: 3000,
+      horizontalPosition: 'center',
+      verticalPosition: 'top',
+      panelClass: ['success-snackbar']
+    });
+  }
+
+  private showErrorMessage(message: string): void {
+    this.snackBar.open(message, 'Fermer', {
+      duration: 5000,
+      horizontalPosition: 'center',
+      verticalPosition: 'top',
+      panelClass: ['error-snackbar']
+    });
+  }
+
+  private redirectBasedOnRole(user: any): void {
+    setTimeout(() => {
+      // Vérifier le rôle de l'utilisateur
+      const userRole = user?.role?.toUpperCase();
+      
+      if (userRole === 'ORGANIZATION') {
+        // Organisation : rediriger vers la création d'opportunité
+        this.router.navigate(['/volunteering/opportunities/create']);
+      } else {
+        // Volontaire ou autre : rediriger vers la liste des opportunités
+        this.router.navigate(['/volunteering/opportunities']);
+      }
+    }, 1500);
+  }
+
+  hasError(controlName: string, errorType: string): boolean {
+    const control = this.loginForm.get(controlName);
+    return control ? control.hasError(errorType) && control.touched : false;
+  }
+
+  getErrorMessage(controlName: string): string {
+    const control = this.loginForm.get(controlName);
+    if (control && control.errors && control.touched) {
+      if (control.errors['required']) {
+        return 'Ce champ est obligatoire';
+      }
+      if (control.errors['email']) {
+        return 'Format d\'email invalide';
+      }
+      if (control.errors['minlength']) {
+        return `Minimum ${control.errors['minlength'].requiredLength} caractères`;
+      }
+    }
+    return '';
+  }
+
+  onForgotPassword(): void {
+    // TODO: Implémenter la récupération de mot de passe
+    this.snackBar.open('Fonctionnalité à venir', 'Fermer', {
+      duration: 3000,
+      horizontalPosition: 'center',
+      verticalPosition: 'top'
+    });
   }
 }

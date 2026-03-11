@@ -1,1 +1,67 @@
-<p>application-list works!</p>
+<div class="application-list-container">
+
+  <div class="page-header">
+    <mat-icon class="header-icon">assignment</mat-icon>
+    <h1 class="page-title">Mes candidatures</h1>
+  </div>
+
+  <!-- Chargement -->
+  <div class="loading-container" *ngIf="isLoading">
+    <mat-spinner diameter="48"></mat-spinner>
+    <p>Chargement de vos candidatures...</p>
+  </div>
+
+  <!-- Erreur -->
+  <div class="error-container" *ngIf="!isLoading && errorMessage">
+    <mat-icon class="error-icon">error_outline</mat-icon>
+    <p>{{ errorMessage }}</p>
+  </div>
+
+  <!-- Liste des candidatures -->
+  <div class="applications-grid" *ngIf="!isLoading && !errorMessage && applications.length > 0">
+    <mat-card class="application-card" *ngFor="let app of applications" (click)="viewDetail(app)">
+      <mat-card-content>
+        <div class="card-top">
+          <div class="opportunity-ref">
+            <mat-icon class="ref-icon">work_outline</mat-icon>
+            <span>Opportunité <strong>#{{ app.opportunityId }}</strong></span>
+          </div>
+          <span class="status-badge {{ getStatusIcon(app.status) }}-badge" [class]="'badge-' + app.status.toLowerCase()">
+            <mat-icon class="badge-icon">{{ getStatusIcon(app.status) }}</mat-icon>
+            {{ getStatusLabel(app.status) }}
+          </span>
+        </div>
+
+        <div class="card-dates">
+          <div class="date-item">
+            <mat-icon>event_available</mat-icon>
+            <span>Postulé le {{ app.appliedAt | date:'dd/MM/yyyy' }}</span>
+          </div>
+          <div class="date-item" *ngIf="app.updatedAt">
+            <mat-icon>update</mat-icon>
+            <span>Mis à jour le {{ app.updatedAt | date:'dd/MM/yyyy' }}</span>
+          </div>
+        </div>
+      </mat-card-content>
+
+      <mat-card-actions align="end">
+        <button mat-button color="primary" (click)="viewDetail(app); $event.stopPropagation()">
+          <mat-icon>arrow_forward</mat-icon>
+          Voir le détail
+        </button>
+      </mat-card-actions>
+    </mat-card>
+  </div>
+
+  <!-- État vide -->
+  <div class="empty-state" *ngIf="!isLoading && !errorMessage && applications.length === 0">
+    <mat-icon class="empty-icon">inbox</mat-icon>
+    <h2 class="empty-title">Aucune candidature</h2>
+    <p class="empty-subtitle">Vous n'avez pas encore postulé à une opportunité.</p>
+    <button mat-raised-button color="primary" (click)="goToOpportunities()">
+      <mat-icon>search</mat-icon>
+      Trouver une opportunité
+    </button>
+  </div>
+
+</div>

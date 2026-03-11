@@ -1,183 +1,166 @@
-<div class="parent">
-    <div class="container">
-        <div class="login-container">
-            <div class="right-section">
-                <div class="text-center pt-4 h3 text-primary">
-                    S'INSCRIRE
-                </div>
-                <div class="card-body">
-                    <form novalidate (ngSubmit)="saveData()" [formGroup]="registerForm">
-                        <div class="row">
-                            <div class="col-md-12 mb-3">
-                                <label>E-Mail</label>
-                                <input type="email" class="form-control" placeholder="E-Mail"
-                                    formControlName="email"
-                                    [ngClass]="{'is-invalid': registerForm.get('email')?.touched && 
-                                    !registerForm.get('email')?.valid}"
-                                />
-                                <div class="invalid-feedback">
-                                    <span *ngIf="registerForm.get('email')?.errors?.['required']">
-                                        Entrez votre E-Mail
-                                    </span>
-                                    <span *ngIf="registerForm.get('email')?.errors?.['email']">
-                                        E-Mail incorrect
-                                    </span>
-                                </div>
-                            </div>
-                        </div>
-                        <div class="row">
-                            <div class="col-md-6 mb-3">
-                                <label>Nom</label>
-                                <input type="text" class="form-control" placeholder="Nom"
-                                    formControlName="lastName"
-                                    [ngClass]="{'is-invalid': registerForm.get('lastName')?.touched && 
-                                    !registerForm.get('lastName')?.valid}"
-                                />
-                                <div class="invalid-feedback">
-                                    <span *ngIf="registerForm.get('lastName')?.errors?.['required']">
-                                        Entrez votre nom
-                                    </span>
-                                    <span *ngIf="registerForm.get('lastName')?.errors?.['minlength']">
-                                        Minimum 4 caractères
-                                    </span>
-                                </div>
-                            </div>
-            
-                            <div class="col-md-6 mb-3">
-                                <label>Prénom</label>
-                                <input type="text" class="form-control" placeholder="Prénom"
-                                    formControlName="firstName"
-                                    [ngClass]="{'is-invalid': registerForm.get('firstName')?.touched && 
-                                    !registerForm.get('firstName')?.valid}"
-                                />
-                                <div class="invalid-feedback">
-                                    <span *ngIf="registerForm.get('firstName')?.errors?.['required']">
-                                        Entrez votre prénom
-                                    </span>
-                                    <span *ngIf="registerForm.get('firstName')?.errors?.['maxlength']">
-                                        Maximum 20 caractères
-                                    </span>
-                                </div>
-                            </div>
-                        </div>
-            
-                        <div class="row">
-                            <div class="col-md-6 mb-3">
-                                <label>Ville</label>
-                                <input type="text" class="form-control" placeholder="Ville"
-                                    formControlName="ville"
-                                    [ngClass]="{'is-invalid': registerForm.get('ville')?.touched && 
-                                    !registerForm.get('ville')?.valid}"
-                                />
-                                <div class="invalid-feedback">
-                                    <span *ngIf="registerForm.get('ville')?.errors?.['required']">
-                                        Entrez le nom de votre ville
-                                    </span>
-                                </div>
-                            </div>
-            
-                            <div class="col-md-6 mb-3">
-                                <label>Date de Naissance</label>
-                                <input type="date" class="form-control"
-                                    formControlName="created_at"
-                                    [ngClass]="{'is-invalid': registerForm.get('created_at')?.touched && !registerForm.get('created_at')?.valid}"
-                                />
-                                <div class="invalid-feedback">
-                                    <span *ngIf="registerForm.get('created_at')?.errors?.['required']">
-                                        Date de naissance requise
-                                    </span>
-                                    <span *ngIf="registerForm.get('created_at')?.errors?.['underage']">
-                                        Vous devez avoir au moins 15 ans.
-                                    </span>
-                                </div>
-                              </div>
-                        </div>
-            
-                        <div class="row">
-                            <div class="col-md-6 mb-3">
-                                <label>Téléphone</label>
-                                <input type="tel" class="form-control" placeholder="Numéro de téléphone"
-                                    formControlName="phone"
-                                    [ngClass]="{'is-invalid': registerForm.get('phone')?.touched && 
-                                    !registerForm.get('phone')?.valid}"
-                                />
-                                <div class="invalid-feedback">
-                                    <span *ngIf="registerForm.get('phone')?.errors?.['required']">
-                                        Veuillez entrer votre numéro de téléphone
-                                    </span>
-                                </div>
-                            </div>
-                            
-                            <div class="col-md-6 mb-3">
-                                <div formGroupName="passwordGroup">
-                                    <label>Mot de passe</label>
-                                    <input type="password" class="form-control"
-                                        formControlName="password"
-                                        [ngClass]="{'is-invalid': registerForm.get('passwordGroup.password')?.touched && 
-                                                    !registerForm.get('passwordGroup.password')?.valid}"
-                                    />
-                                    <div class="invalid-feedback">
-                                        <span *ngIf="registerForm.get('passwordGroup.password')?.errors?.['required']">
-                                            Mot de passe requis
-                                        </span>
-                                        <span *ngIf="registerForm.get('passwordGroup.password')?.errors?.['minlength']">
-                                            Au moins 6 caractères
-                                        </span>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                        <div class="row">
-                            <div class="col-md-6 mb-3">
-                                <div formGroupName="passwordGroup">
-                                    <label>Confirmer Mot de passe</label>
-                                    <input type="password" class="form-control"
-                                        formControlName="confirmPassword"
-                                        [ngClass]="{'is-invalid': 
-                                            (registerForm.get('passwordGroup.confirmPassword')?.touched || 
-                                            registerForm.get('passwordGroup.confirmPassword')?.dirty) && 
-                                            registerForm.get('passwordGroup')?.errors?.['match']}"
-                                    />
-                                    <div class="invalid-feedback">
-                                        <span *ngIf="registerForm.get('passwordGroup.confirmPassword')?.errors?.['required']">
-                                            Confirmation du mot de passe requise
-                                        </span>
-                                        <span *ngIf="registerForm.get('passwordGroup')?.errors?.['match']">
-                                            Les mots de passe ne correspondent pas
-                                        </span>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                       
-            
-                        <div class="text-right">
-                            <button type="submit" class="btn btn-primary" 
-                                [disabled]="registerForm.invalid">
-                                Inscription
-                            </button>
-                        </div>
-                        <div *ngIf="confirmationMsg" class="confirmation-message">
-                            {{ confirmationMsg }}
-                          </div>
-                        
-                          <div *ngIf="errorMsg" class="error-message">
-                            {{ errorMsg }}
-                          </div>
-                    </form>
-                </div>
-            </div>
-        </div>
+<div class="register-container">
+  <div class="register-content">
+    
+    <!-- En-tête -->
+    <div class="register-header">
+      <h1 class="register-title">
+        <mat-icon class="title-icon">person_add</mat-icon>
+        Créer un compte
+      </h1>
+      <p class="register-subtitle">Rejoignez notre communauté de volontaires</p>
     </div>
-</div>
 
-<br>
-<br>
- 
- <p>Dirty : {{registerForm.dirty}}</p>
-<!-- <p>Pristine : {{registerForm.pristine}}</p>
-<p>Valid : {{registerForm.valid}}</p>
-<p>Invalid : {{registerForm.invalid}}</p>
-  <p>Adressese bloc 1 : {{addressList.get('0.street1')?.value}}</p> 
-<p> Value : </p> -->
-<!-- <pre>{{registerForm.value | json}}</pre> -->
+    <!-- Formulaire d'inscription -->
+    <mat-card class="register-card">
+      <mat-card-content>
+        <form [formGroup]="registerForm" (ngSubmit)="onSubmit()">
+          
+          <!-- Informations de connexion -->
+          <div class="form-section">
+            <h3 class="section-title">
+              <mat-icon class="section-icon">account_circle</mat-icon>
+              Informations de connexion
+            </h3>
+            
+            <div class="form-row">
+              <mat-form-field appearance="outline" class="form-field">
+                <mat-label>Nom d'utilisateur *</mat-label>
+                <input matInput formControlName="username" placeholder="Ex: john_doe">
+                <mat-error *ngIf="hasError('username', 'required')">
+                  Le nom d'utilisateur est obligatoire
+                </mat-error>
+                <mat-error *ngIf="hasError('username', 'minlength')">
+                  Minimum 3 caractères
+                </mat-error>
+              </mat-form-field>
+
+              <mat-form-field appearance="outline" class="form-field">
+                <mat-label>Email *</mat-label>
+                <input matInput type="email" formControlName="email" placeholder="Ex: john@example.com">
+                <mat-error *ngIf="hasError('email', 'required')">
+                  L'email est obligatoire
+                </mat-error>
+                <mat-error *ngIf="hasError('email', 'email')">
+                  Format d'email invalide
+                </mat-error>
+              </mat-form-field>
+            </div>
+
+            <div class="form-row">
+              <mat-form-field appearance="outline" class="form-field">
+                <mat-label>Mot de passe *</mat-label>
+                <input matInput type="password" formControlName="password" placeholder="Minimum 6 caractères">
+                <mat-error *ngIf="hasError('password', 'required')">
+                  Le mot de passe est obligatoire
+                </mat-error>
+                <mat-error *ngIf="hasError('password', 'minlength')">
+                  Minimum 6 caractères
+                </mat-error>
+              </mat-form-field>
+
+              <mat-form-field appearance="outline" class="form-field">
+                <mat-label>Rôle *</mat-label>
+                <mat-select formControlName="role">
+                  <mat-option *ngFor="let role of roleOptions" [value]="role.value">
+                    {{role.label}}
+                  </mat-option>
+                </mat-select>
+                <mat-error *ngIf="hasError('role', 'required')">
+                  Veuillez sélectionner un rôle
+                </mat-error>
+              </mat-form-field>
+            </div>
+          </div>
+
+          <!-- Informations personnelles -->
+          <div class="form-section">
+            <h3 class="section-title">
+              <mat-icon class="section-icon">person</mat-icon>
+              Informations personnelles
+            </h3>
+            
+            <div class="form-row">
+              <mat-form-field appearance="outline" class="form-field">
+                <mat-label>Prénom *</mat-label>
+                <input matInput formControlName="firstName" placeholder="Ex: John">
+                <mat-error *ngIf="hasError('firstName', 'required')">
+                  Le prénom est obligatoire
+                </mat-error>
+              </mat-form-field>
+
+              <mat-form-field appearance="outline" class="form-field">
+                <mat-label>Nom *</mat-label>
+                <input matInput formControlName="lastName" placeholder="Ex: Doe">
+                <mat-error *ngIf="hasError('lastName', 'required')">
+                  Le nom est obligatoire
+                </mat-error>
+              </mat-form-field>
+            </div>
+
+            <div class="form-row">
+              <mat-form-field appearance="outline" class="form-field">
+                <mat-label>Téléphone *</mat-label>
+                <input matInput type="tel" formControlName="phone" placeholder="Ex: 0123456789">
+                <mat-error *ngIf="hasError('phone', 'required')">
+                  Le téléphone est obligatoire
+                </mat-error>
+              </mat-form-field>
+
+              <mat-form-field appearance="outline" class="form-field">
+                <mat-label>Adresse</mat-label>
+                <input matInput formControlName="address" placeholder="Ex: 123 Rue de la Paix, Paris">
+              </mat-form-field>
+            </div>
+          </div>
+
+          <!-- Informations optionnelles -->
+          <div class="form-section">
+            <h3 class="section-title">
+              <mat-icon class="section-icon">info</mat-icon>
+              Informations complémentaires
+            </h3>
+            
+            <mat-form-field appearance="outline" class="full-width">
+              <mat-label>Nom de l'organisation</mat-label>
+              <input matInput formControlName="orgName" placeholder="Ex: Association Solidarité">
+              <mat-hint>Requis si vous êtes une organisation</mat-hint>
+            </mat-form-field>
+
+            <mat-form-field appearance="outline" class="full-width">
+              <mat-label>Biographie</mat-label>
+              <textarea matInput formControlName="bio" rows="3" placeholder="Parlez-nous de vous..."></textarea>
+            </mat-form-field>
+          </div>
+
+          <!-- Messages d'erreur -->
+          <div *ngIf="errorMessage" class="error-message">
+            <mat-icon class="error-icon">error</mat-icon>
+            {{errorMessage}}
+          </div>
+
+          <!-- Boutons d'action -->
+          <div class="action-buttons">
+            <button mat-button type="button" (click)="onCancel()">
+              <mat-icon class="button-icon">arrow_back</mat-icon>
+              Retour
+            </button>
+            
+            <button mat-raised-button 
+                    color="primary" 
+                    type="submit"
+                    [disabled]="isSubmitting || !registerForm.valid">
+              <mat-spinner diameter="20" *ngIf="isSubmitting" class="button-spinner"></mat-spinner>
+              <mat-icon *ngIf="!isSubmitting" class="button-icon">person_add</mat-icon>
+              {{isSubmitting ? 'Inscription en cours...' : 'S\'inscrire'}}
+            </button>
+          </div>
+        </form>
+      </mat-card-content>
+    </mat-card>
+
+    <!-- Lien vers la connexion -->
+    <div class="login-link">
+      <p>Déjà un compte ? <a routerLink="/login">Se connecter</a></p>
+    </div>
+  </div>
+</div>

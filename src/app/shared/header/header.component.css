@@ -1,47 +1,222 @@
-.logo-link {
-    text-decoration: none; /* Supprimer le soulignement du lien */
-  }
-  
-  .logo {
-    font-size: 1.5rem;
-    font-weight: bold;
-  }
-  
-  .spacer {
-    flex: 1; /* Prend tout l'espace disponible entre le logo et les boutons */
-  }
-  
-  .menu-buttons {
-    display: flex; /* Aligner les boutons horizontalement */
-    gap: 1rem; /* Espace entre les boutons */
-  }
-  
-  /* Responsive pour les écrans plus petits */
-  @media (max-width: 600px) {
-    .menu-buttons {
-      flex-direction: column; /* Empiler les boutons verticalement */
-      align-items: center; /* Centrer les boutons */
-    }
-  
-    .spacer {
-      display: none; /* Masquer le spacer */
-    }
-  
-    .logo {
-      margin-bottom: 1rem; /* Ajouter de l'espace sous le logo */
-    }
-  }
-  
+/* Header — Océan & Confiance */
+.header-toolbar {
+  background: #ffffff;
+  color: #0c1a2e;
+  box-shadow: 0 2px 12px rgba(2, 132, 199, 0.1);
+  position: sticky;
+  top: 0;
+  z-index: 1000;
+  border-bottom: 2px solid #bae6fd;
+}
 
-mat-toolbar-row {
-    display: flex;
-    justify-content: space-between; /* Aligner les éléments à chaque extrémité */
-    align-items: center; /* Centrer verticalement les éléments */
-  }
-  
-  .spacer {
-    display: none; /* Masquer le spacer, plus besoin avec justify-content: space-between */
-  }
-  
-  /* ... (styles responsive et autres) ... */
-  
+.header-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 16px;
+  min-height: 64px;
+}
+
+/* Logo */
+.logo-section { display: flex; align-items: center; }
+
+.logo-link {
+  display: flex;
+  align-items: center;
+  text-decoration: none;
+  color: #0284c7;
+  transition: opacity 0.2s ease;
+}
+.logo-link:hover { opacity: 0.8; }
+
+.logo-icon {
+  font-size: 28px;
+  margin-right: 8px;
+  color: #0284c7;
+}
+
+.logo-text {
+  font-size: 1.5rem;
+  font-weight: 700;
+  letter-spacing: 0.5px;
+  color: #0284c7;
+}
+
+/* Navigation desktop */
+.main-nav {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.nav-button {
+  color: #0c1a2e;
+  font-weight: 500;
+  border-radius: 8px;
+  transition: all 0.2s ease;
+  padding: 8px 12px;
+  min-width: auto;
+}
+.nav-button:hover {
+  background-color: #e0f2fe;
+  color: #0284c7;
+}
+.nav-button.active {
+  background-color: #e0f2fe;
+  color: #0284c7;
+}
+.nav-button mat-icon {
+  margin-right: 4px;
+  font-size: 18px;
+}
+.nav-text { font-size: 0.85rem; }
+
+/* Actions utilisateur desktop */
+.user-actions {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+.authenticated-user {
+  display: flex;
+  align-items: center;
+}
+.user-menu-button {
+  color: #0c1a2e;
+  font-weight: 500;
+  border-radius: 8px;
+  transition: all 0.2s ease;
+}
+.user-menu-button:hover {
+  background-color: #e0f2fe;
+  color: #0284c7;
+}
+.user-menu-button mat-icon {
+  margin-right: 4px;
+  font-size: 20px;
+}
+.user-name {
+  font-size: 0.9rem;
+  margin-right: 4px;
+  color: #0c1a2e;
+}
+.guest-user {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+.auth-button {
+  font-weight: 500;
+  border-radius: 8px;
+  transition: all 0.2s ease;
+  padding: 8px 12px;
+  min-width: auto;
+  font-size: 0.8rem;
+  color: #0c1a2e;
+}
+.auth-button:hover {
+  background-color: #e0f2fe;
+  color: #0284c7;
+}
+.auth-button mat-icon {
+  margin-right: 4px;
+  font-size: 16px;
+}
+
+/* Bouton mobile */
+.mobile-menu-button {
+  color: #0c1a2e;
+  display: none;
+}
+.mobile-menu-button.menu-open {
+  background-color: #e0f2fe;
+  color: #0284c7;
+}
+
+/* Menu mobile déroulant */
+.mobile-menu {
+  background-color: #f0f9ff;
+  padding: 0;
+  min-height: auto;
+  border-top: 1px solid #bae6fd;
+  animation: slideDown 0.3s ease-out;
+}
+.mobile-nav-content {
+  width: 100%;
+  padding: 16px;
+}
+.mobile-nav-section,
+.mobile-user-section,
+.mobile-guest-section {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin-bottom: 16px;
+}
+.mobile-nav-section:last-child,
+.mobile-user-section:last-child,
+.mobile-guest-section:last-child { margin-bottom: 0; }
+
+.mobile-nav-button {
+  width: 100%;
+  justify-content: flex-start;
+  color: #0c1a2e;
+  font-weight: 500;
+  border-radius: 8px;
+  transition: all 0.2s ease;
+}
+.mobile-nav-button:hover {
+  background-color: #e0f2fe;
+  color: #0284c7;
+}
+.mobile-nav-button mat-icon {
+  margin-right: 12px;
+  font-size: 20px;
+}
+
+.logout-button { color: #d32f2f; }
+.logout-button:hover {
+  background-color: rgba(211, 47, 47, 0.1);
+  color: #d32f2f;
+}
+
+/* Overrides menu Material */
+::ng-deep .user-menu { margin-top: 8px; }
+::ng-deep .user-menu .mat-mdc-menu-item { min-height: 40px; }
+::ng-deep .user-menu .mat-mdc-menu-item mat-icon { margin-right: 12px; font-size: 20px; }
+
+/* Responsive */
+@media (max-width: 1024px) {
+  .main-nav,
+  .user-actions { display: none; }
+  .mobile-menu-button { display: block; }
+  .logo-text { font-size: 1.25rem; }
+  .logo-icon { font-size: 24px; margin-right: 6px; }
+}
+@media (max-width: 480px) {
+  .header-row { padding: 0 8px; }
+  .logo-text { font-size: 1.1rem; }
+  .logo-icon { font-size: 20px; margin-right: 4px; }
+  .mobile-nav-content { padding: 12px; }
+}
+
+@keyframes slideDown {
+  from { opacity: 0; transform: translateY(-10px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+/* Focus accessibilité */
+.logo-link:focus,
+.nav-button:focus,
+.user-menu-button:focus,
+.auth-button:focus,
+.mobile-menu-button:focus,
+.mobile-nav-button:focus {
+  outline: 2px solid #0284c7;
+  outline-offset: 2px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .mobile-menu { animation: none; }
+  * { transition: none !important; }
+}

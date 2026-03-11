@@ -1,0 +1,175 @@
+/* Org Login — Océan & Confiance */
+.login-container {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  min-height: 100vh;
+  padding: 20px;
+  background: transparent;
+}
+
+.login-card {
+  width: 100%;
+  max-width: 450px;
+  border-radius: 16px;
+  box-shadow: 0 8px 32px rgba(2, 132, 199, 0.12);
+  background: #ffffff;
+  border: 1px solid #bae6fd;
+}
+
+.login-card mat-card-header {
+  text-align: center;
+  padding: 24px 24px 0;
+}
+
+.login-card mat-card-title {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  font-size: 24px;
+  font-weight: 700;
+  color: #0c1a2e;
+  margin-bottom: 8px;
+}
+
+.title-icon {
+  font-size: 28px;
+  width: 28px;
+  height: 28px;
+  color: #0284c7;
+}
+
+.login-card mat-card-subtitle {
+  color: #64748b;
+  font-size: 14px;
+  margin-bottom: 0;
+}
+
+.login-card mat-card-content { padding: 24px; }
+
+.full-width {
+  width: 100%;
+  margin-bottom: 20px;
+}
+
+.step-container { animation: fadeIn 0.3s ease-in-out; }
+
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(10px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+.email-display {
+  margin-bottom: 20px;
+  text-align: center;
+}
+.email-display mat-chip {
+  font-size: 14px;
+  padding: 8px 16px;
+}
+
+.action-button {
+  height: 48px;
+  font-size: 16px;
+  font-weight: 500;
+  border-radius: 8px;
+  margin-top: 8px;
+}
+.action-button mat-icon { margin-right: 8px; }
+.spinner { margin-right: 8px; }
+
+.button-group { display: flex; gap: 12px; margin-top: 8px; }
+.button-group .back-button   { flex: 1; height: 48px; border-radius: 8px; }
+.button-group .action-button { flex: 2; height: 48px; border-radius: 8px; }
+
+.error-message {
+  margin-bottom: 16px;
+  padding: 12px 16px;
+  border-radius: 8px;
+  background-color: #fef2f2;
+  border: 1px solid #fecaca;
+}
+.error-message mat-error {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  color: #b91c1c;
+  font-size: 14px;
+}
+.error-message mat-icon { font-size: 18px; width: 18px; height: 18px; }
+
+.success-message {
+  margin-bottom: 16px;
+  padding: 12px 16px;
+  border-radius: 8px;
+  background-color: #e0f2fe;
+  border: 1px solid #bae6fd;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  color: #0369a1;
+  font-size: 14px;
+}
+.success-icon { font-size: 18px; width: 18px; height: 18px; }
+
+.help-text {
+  padding: 16px 24px;
+  background-color: #f0f9ff;
+  border-radius: 8px;
+  margin: 0 24px 24px;
+  border: 1px solid #e0f2fe;
+}
+.help-text p {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin: 8px 0;
+  color: #64748b;
+  font-size: 13px;
+}
+.help-text mat-icon { font-size: 16px; width: 16px; height: 16px; color: #0284c7; }
+
+.login-footer {
+  text-align: center;
+  margin-top: 24px;
+  padding-top: 24px;
+  border-top: 1px solid #e0f2fe;
+}
+
+.register-link-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  padding: 0 24px 24px;
+}
+.register-link-container p {
+  margin: 0;
+  color: #64748b;
+  font-size: 14px;
+}
+.register-link {
+  font-weight: 500;
+  border-radius: 6px;
+  transition: all 0.2s ease;
+}
+.register-link:hover { background-color: #e0f2fe; }
+.register-link mat-icon { margin-right: 4px; font-size: 18px; }
+
+@media (max-width: 480px) {
+  .login-container { padding: 16px; }
+  .login-card { max-width: 100%; }
+  .login-card mat-card-content { padding: 20px; }
+  .button-group { flex-direction: column; }
+  .button-group .back-button,
+  .button-group .action-button { flex: none; width: 100%; }
+  .help-text { margin: 0 20px 20px; padding: 12px 16px; }
+  .register-link-container { padding: 0 20px 20px; }
+}
+
+.mat-mdc-raised-button.mat-primary:focus {
+  box-shadow: 0 0 0 3px rgba(2, 132, 199, 0.3);
+}
+.mat-raised-button:disabled { opacity: 0.7; }
+.mat-form-field { transition: all 0.3s ease; }

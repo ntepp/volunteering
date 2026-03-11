@@ -1,21 +1,183 @@
-<mat-toolbar color="primary">
-  <mat-toolbar-row>
-    <a href="/" class="logo-link"> 
-      <span class="logo">Je Suis Utile</span>
-    </a>
-    <div class="spacer"></div> 
-    <div class="menu-buttons">
-      <a href="/volunteering/opportunities" mat-button>
-        <mat-icon>search</mat-icon> Trouver une opportunité</a>
-      <a href="volunteering/opportunities/create" mat-button>
-        <mat-icon>volunteer_activism</mat-icon>Publier une opportunité</a>
-      <button mat-button >
-        Mon compte <mat-icon>person</mat-icon> 
-      </button>
-      <a href="/register/organisation" mat-button>Enregistrer une organisation</a>
-      <a href="login" mat-button>Login</a>
-      
+<mat-toolbar color="primary" class="header-toolbar">
+  <mat-toolbar-row class="header-row">
+    
+    <!-- Logo -->
+    <div class="logo-section">
+      <a routerLink="/" class="logo-link">
+        <mat-icon class="logo-icon">volunteer_activism</mat-icon>
+        <span class="logo-text">Je Suis Utile</span>
+      </a>
+    </div>
 
+    <!-- Navigation principale (Desktop) -->
+    <nav class="main-nav" *ngIf="!isMenuOpen">
+      <button mat-button
+              routerLink="/volunteering/opportunities"
+              routerLinkActive="active"
+              class="nav-button"
+              aria-label="Trouver une opportunité">
+        <mat-icon>search</mat-icon>
+        <span class="nav-text">Trouver une opportunité</span>
+      </button>
+
+      <button mat-button
+              (click)="onPublishOpportunity()"
+              [class.active]="router.url === '/volunteering/opportunities/create'"
+              class="nav-button"
+              aria-label="Publier une opportunité">
+        <mat-icon>volunteer_activism</mat-icon>
+        <span class="nav-text">Publier une opportunité</span>
+      </button>
+    </nav>
+
+    <!-- Actions utilisateur (Desktop) -->
+    <div class="user-actions" *ngIf="!isMenuOpen">
+      
+      <!-- Utilisateur connecté -->
+      <div *ngIf="isAuthenticated" class="authenticated-user">
+        <button mat-button
+                [matMenuTriggerFor]="userMenu"
+                class="user-menu-button"
+                [attr.aria-label]="'Menu de ' + (user?.firstName || 'mon compte')">
+          <mat-icon>account_circle</mat-icon>
+          <span class="user-name">{{ user?.firstName || 'Mon compte' }}</span>
+          <mat-icon>arrow_drop_down</mat-icon>
+        </button>
+        
+        <mat-menu #userMenu="matMenu" class="user-menu">
+          <button mat-menu-item (click)="onMyAccount()">
+            <mat-icon>person</mat-icon>
+            <span>Mon profil</span>
+          </button>
+          <button mat-menu-item routerLink="/volunteering/opportunities/my">
+            <mat-icon>work</mat-icon>
+            <span>Mes opportunités</span>
+          </button>
+          <button mat-menu-item routerLink="/applications">
+            <mat-icon>assignment</mat-icon>
+            <span>Mes candidatures</span>
+          </button>
+          <mat-divider></mat-divider>
+          <button mat-menu-item (click)="onLogout()">
+            <mat-icon>logout</mat-icon>
+            <span>Se déconnecter</span>
+          </button>
+        </mat-menu>
+      </div>
+
+      <!-- Utilisateur non connecté -->
+      <div *ngIf="!isAuthenticated" class="guest-user">
+        <button mat-button 
+                routerLink="/register/volonteer" 
+                class="auth-button">
+          <mat-icon>person_add</mat-icon>
+          <span>Enregistrer un volontaire</span>
+        </button>
+        <button mat-button 
+                routerLink="/register/organisation" 
+                class="auth-button">
+          <mat-icon>business</mat-icon>
+          <span>Enregistrer une organisation</span>
+        </button>
+        <button mat-button 
+                routerLink="/login" 
+                class="auth-button">
+          <mat-icon>login</mat-icon>
+          <span>Espace volontaire</span>
+        </button>
+        <button mat-button 
+                routerLink="/login/organisation" 
+                class="auth-button">
+          <mat-icon>business_center</mat-icon>
+          <span>Espace organisation</span>
+        </button>
+      </div>
+    </div>
+
+    <!-- Menu mobile -->
+    <button mat-icon-button
+            (click)="toggleMenu()"
+            class="mobile-menu-button"
+            [class.menu-open]="isMenuOpen"
+            [attr.aria-label]="isMenuOpen ? 'Fermer le menu' : 'Ouvrir le menu'"
+            [attr.aria-expanded]="isMenuOpen">
+      <mat-icon>{{ isMenuOpen ? 'close' : 'menu' }}</mat-icon>
+    </button>
+  </mat-toolbar-row>
+
+  <!-- Menu mobile déroulant -->
+  <mat-toolbar-row class="mobile-menu" *ngIf="isMenuOpen">
+    <div class="mobile-nav-content">
+      
+      <!-- Navigation mobile -->
+      <div class="mobile-nav-section">
+        <button mat-button 
+                routerLink="/volunteering/opportunities" 
+                (click)="closeMenu()"
+                class="mobile-nav-button">
+          <mat-icon>search</mat-icon>
+          <span>Trouver une opportunité</span>
+        </button>
+        
+        <button mat-button 
+                (click)="onPublishOpportunity(); closeMenu()"
+                class="mobile-nav-button">
+          <mat-icon>volunteer_activism</mat-icon>
+          <span>Publier une opportunité</span>
+        </button>
+      </div>
+
+      <!-- Actions utilisateur mobile -->
+      <div class="mobile-user-section" *ngIf="isAuthenticated">
+        <button mat-button (click)="onMyAccount(); closeMenu()" class="mobile-nav-button">
+          <mat-icon>person</mat-icon>
+          <span>Mon profil</span>
+        </button>
+        <button mat-button routerLink="/volunteering/opportunities/my" (click)="closeMenu()" class="mobile-nav-button">
+          <mat-icon>work</mat-icon>
+          <span>Mes opportunités</span>
+        </button>
+        <button mat-button routerLink="/applications" (click)="closeMenu()" class="mobile-nav-button">
+          <mat-icon>assignment</mat-icon>
+          <span>Mes candidatures</span>
+        </button>
+        <button mat-button (click)="onLogout(); closeMenu()" class="mobile-nav-button logout-button">
+          <mat-icon>logout</mat-icon>
+          <span>Se déconnecter</span>
+        </button>
+      </div>
+
+      <!-- Actions invité mobile -->
+      <div class="mobile-guest-section" *ngIf="!isAuthenticated">
+        <button mat-button 
+                routerLink="/register/volonteer" 
+                (click)="closeMenu()" 
+                class="mobile-nav-button">
+          <mat-icon>person_add</mat-icon>
+          <span>Enregistrer un volontaire</span>
+        </button>
+        <button mat-button 
+                routerLink="/register/organisation" 
+                (click)="closeMenu()" 
+                class="mobile-nav-button">
+          <mat-icon>business</mat-icon>
+          <span>Enregistrer une organisation</span>
+        </button>
+        <button mat-button 
+                routerLink="/login" 
+                (click)="closeMenu()" 
+                class="mobile-nav-button">
+          <mat-icon>login</mat-icon>
+          <span>Espace volontaire</span>
+        </button>
+        <button mat-button 
+                routerLink="/login/organisation" 
+                (click)="closeMenu()" 
+                class="mobile-nav-button">
+          <mat-icon>business_center</mat-icon>
+          <span>Espace organisation</span>
+        </button>
+      </div>
     </div>
   </mat-toolbar-row>
 </mat-toolbar>

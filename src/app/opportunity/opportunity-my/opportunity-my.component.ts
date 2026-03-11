@@ -1,16 +1,19 @@
 import { Component, OnInit } from '@angular/core';
+import { CommonModule } from '@angular/common';
 import { MatPaginatorModule, PageEvent } from '@angular/material/paginator';
 import { MatTableModule } from '@angular/material/table';
 import { OpportunityPagination } from '../../models/opportunity-pagination.model';
 import { OpportunityService } from '../services/opportunity.service';
 import { Opportunity } from '../../models/opportunity.model';
 import { MatIcon } from '@angular/material/icon';
+import { MatDialog } from '@angular/material/dialog';
+import { ViewOpportunityDialogComponent } from './view-opportunity-dialog/view-opportunity-dialog.component';
 
 
 @Component({
   selector: 'app-opportunity-my',
   standalone: true,
-  imports: [MatPaginatorModule, MatTableModule, MatIcon],
+  imports: [CommonModule, MatPaginatorModule, MatTableModule, MatIcon],
   templateUrl: './opportunity-my.component.html',
   styleUrl: './opportunity-my.component.css'
 })
@@ -19,7 +22,7 @@ export class OpportunityMyComponent implements OnInit {
   pageSizeOptions: number[] = [5, 10, 20];
   opportunityPagination: OpportunityPagination = {
     currentPage: 0,
-    itemsPerPage: 2,
+    itemsPerPage: 5,
     totalItems: 20,
     totalPages: 0
   }
@@ -29,8 +32,8 @@ export class OpportunityMyComponent implements OnInit {
   
 
 
-  constructor(private opportunityService: OpportunityService){
-    console.log("loading opportunities")
+  constructor(private opportunityService: OpportunityService, private dialog: MatDialog){
+    
   }
 
   ngOnInit(): void {
@@ -57,9 +60,10 @@ export class OpportunityMyComponent implements OnInit {
     
   }
 
-  onEdit(element: Opportunity): void {
-    console.log('Editing:', element);
-    // Implement your editing logic here
-    // For example, open a dialog with the details of the element
+  
+  onView(element: Opportunity): void {
+    this.dialog.open(ViewOpportunityDialogComponent, {
+      data: element, // Pass the opportunity details to the dialog
+    });
   }
 }

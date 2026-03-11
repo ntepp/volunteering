@@ -1,0 +1,174 @@
+/* Opportunity Create — Océan & Confiance */
+.opportunity-create-container {
+  padding: 24px;
+  max-width: 1200px;
+  margin: 0 auto;
+}
+
+.opportunity-create-content {
+  max-width: 800px;
+  margin: 0 auto;
+}
+
+.page-header {
+  display: flex;
+  align-items: center;
+  margin-bottom: 32px;
+}
+
+.back-button {
+  margin-right: 16px;
+  color: #0284c7;
+}
+.back-button:hover {
+  background-color: #e0f2fe;
+  transform: translateY(-1px);
+}
+
+.page-title {
+  color: #0c1a2e;
+  font-weight: 700;
+  font-size: 1.75rem;
+  margin: 0;
+}
+
+.loading-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 80px 20px;
+  text-align: center;
+}
+.loading-text {
+  margin-top: 16px;
+  color: #64748b;
+  font-size: 14px;
+}
+
+mat-card {
+  transition: all 0.3s ease;
+  border-radius: 12px;
+  box-shadow: 0 4px 16px rgba(2, 132, 199, 0.08);
+  margin-bottom: 24px;
+  background: #ffffff;
+  border: 1px solid #bae6fd;
+}
+mat-card:hover {
+  box-shadow: 0 4px 20px rgba(2, 132, 199, 0.15);
+  transform: translateY(-2px);
+}
+
+.card-icon { color: #0284c7; vertical-align: middle; margin-right: 8px; }
+
+mat-form-field { margin-bottom: 8px; }
+.full-width { width: 100%; }
+
+.form-section { display: flex; flex-direction: column; gap: 16px; }
+.form-field { flex: 1; }
+.form-row { display: flex; gap: 16px; align-items: flex-end; }
+
+@media (max-width: 768px) {
+  .form-row { flex-direction: column; gap: 8px; }
+}
+
+.skill-row {
+  display: flex;
+  gap: 16px;
+  align-items: flex-end;
+  margin-bottom: 16px;
+}
+.skill-field   { flex: 1; }
+.skill-action  { flex-shrink: 0; }
+
+@media (max-width: 768px) {
+  .skill-row { flex-direction: column; gap: 8px; }
+  .skill-action { align-self: flex-end; }
+}
+
+.action-buttons {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-top: 32px;
+  gap: 16px;
+}
+.button-icon   { margin-right: 8px; }
+.button-spinner { margin-right: 8px; }
+
+@media (max-width: 768px) {
+  .action-buttons { flex-direction: column; gap: 16px; }
+  .action-buttons button { width: 100%; }
+}
+
+.add-skill-button { margin-top: 16px; transition: all 0.3s ease; }
+.add-skill-button:hover {
+  background-color: #e0f2fe;
+  color: #0284c7;
+}
+
+.error-message {
+  border-radius: 8px;
+  border-left: 4px solid #dc2626;
+  background-color: #fef2f2;
+  color: #b91c1c;
+  padding: 16px;
+  margin-bottom: 24px;
+  display: flex;
+  align-items: center;
+}
+.error-icon { color: #dc2626; margin-right: 8px; }
+
+/* Bouton primaire */
+.mat-mdc-raised-button.mat-primary {
+  background-color: #0284c7;
+  color: white;
+  border-radius: 8px;
+  padding: 8px 24px;
+  font-weight: 500;
+  transition: all 0.3s ease;
+}
+.mat-mdc-raised-button.mat-primary:hover:not([disabled]) {
+  background-color: #0369a1;
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(2, 132, 199, 0.3);
+}
+.mat-mdc-raised-button.mat-primary:disabled {
+  background-color: #bdbdbd;
+  color: #757575;
+}
+
+.mat-mdc-button { border-radius: 8px; padding: 8px 16px; transition: all 0.3s ease; }
+.mat-mdc-button:hover { background-color: rgba(0, 0, 0, 0.04); }
+
+.mat-mdc-stroked-button {
+  border-radius: 8px;
+  border-width: 2px;
+  transition: all 0.3s ease;
+}
+.mat-mdc-stroked-button:hover {
+  background-color: #e0f2fe;
+  border-color: #0284c7;
+  color: #0284c7;
+}
+
+.mat-mdc-icon-button.mat-warn { color: #f44336; transition: all 0.3s ease; }
+.mat-mdc-icon-button.mat-warn:hover { background-color: #fef2f2; transform: scale(1.1); }
+
+@media (max-width: 768px) {
+  .opportunity-create-container { padding: 16px; }
+  .page-title { font-size: 1.5rem; }
+  mat-card { margin-bottom: 16px; }
+}
+
+mat-spinner { margin: 0 auto; }
+.mat-mdc-chip { border-radius: 16px; margin: 2px; }
+
+mat-form-field:focus-within {
+  outline: 2px solid #0284c7;
+  outline-offset: 2px;
+}
+
+::placeholder { color: #94a3b8; opacity: 1; }
+.mat-mdc-form-field-hint { color: #64748b; font-size: 12px; }
+.mat-mdc-form-field-error { color: #dc2626; font-size: 12px; margin-top: 4px; }

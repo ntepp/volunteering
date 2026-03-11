@@ -6,6 +6,7 @@ import { OpportunityListComponent } from './opportunity/opportunity-list/opportu
 import { LoginComponent } from './auth/login/login.component';
 import { RegisterComponent } from './auth/register/register.component';
 import { OpportunityCreateComponent } from './opportunity/opportunity-create/opportunity-create.component';
+import { OrgLoginComponent } from './auth/org-login/org-login.component';
 import { ReactiveFormsModule } from '@angular/forms';
 
 
@@ -19,6 +20,7 @@ import { ReactiveFormsModule } from '@angular/forms';
     LoginComponent,
     RegisterComponent,
     OpportunityCreateComponent,
+    OrgLoginComponent,
   ],
   templateUrl: './app.component.html',
   styleUrl: './app.component.css'

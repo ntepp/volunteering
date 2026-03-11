@@ -1,0 +1,139 @@
+<div class="login-container">
+  <mat-card class="login-card">
+    <mat-card-header>
+      <mat-card-title>
+        <mat-icon class="title-icon">business</mat-icon>
+        Connexion Organisation
+      </mat-card-title>
+      <mat-card-subtitle>
+        Authentification sécurisée en deux étapes
+      </mat-card-subtitle>
+    </mat-card-header>
+
+    <mat-card-content>
+      <form [formGroup]="loginForm" (ngSubmit)="isCodeSent ? onVerifyCode() : onSendCode()">
+        
+        <!-- Messages d'erreur et de succès -->
+        <div *ngIf="errorMessage" class="error-message">
+          <mat-error>
+            <mat-icon>error</mat-icon>
+            {{ errorMessage }}
+          </mat-error>
+        </div>
+
+        <div *ngIf="successMessage" class="success-message">
+          <mat-icon class="success-icon">check_circle</mat-icon>
+          {{ successMessage }}
+        </div>
+
+        <!-- Étape 1: Saisie de l'email -->
+        <div *ngIf="!isCodeSent" class="step-container">
+          <mat-form-field appearance="outline" class="full-width">
+            <mat-label>Email de l'organisation</mat-label>
+            <input 
+              matInput 
+              type="email" 
+              formControlName="email" 
+              placeholder="exemple@organisation.com"
+              [class.mat-error]="isFieldInvalid('email')"
+            >
+            <mat-icon matSuffix>email</mat-icon>
+            <mat-error *ngIf="isFieldInvalid('email')">
+              {{ getErrorMessage('email') }}
+            </mat-error>
+          </mat-form-field>
+
+          <button 
+            mat-raised-button 
+            color="primary" 
+            type="submit"
+            [disabled]="isLoading || loginForm.get('email')?.invalid"
+            class="full-width action-button"
+          >
+            <mat-spinner *ngIf="isLoading" diameter="20" class="spinner"></mat-spinner>
+            <mat-icon *ngIf="!isLoading">send</mat-icon>
+            {{ isLoading ? 'Envoi en cours...' : 'Envoyer le code' }}
+          </button>
+        </div>
+
+        <!-- Étape 2: Saisie du code -->
+        <div *ngIf="isCodeSent" class="step-container">
+          <div class="email-display">
+            <mat-chip color="primary" selected>
+              <mat-icon>email</mat-icon>
+              {{ loginForm.get('email')?.value }}
+            </mat-chip>
+          </div>
+
+          <mat-form-field appearance="outline" class="full-width">
+            <mat-label>Code de vérification</mat-label>
+            <input 
+              matInput 
+              type="text" 
+              formControlName="code" 
+              placeholder="123456"
+              maxlength="8"
+              [class.mat-error]="isFieldInvalid('code')"
+            >
+            <mat-icon matSuffix>lock</mat-icon>
+            <mat-error *ngIf="isFieldInvalid('code')">
+              {{ getErrorMessage('code') }}
+            </mat-error>
+          </mat-form-field>
+
+          <div class="button-group">
+            <button 
+              mat-stroked-button 
+              type="button"
+              (click)="onBackToEmail()"
+              [disabled]="isLoading"
+              class="back-button"
+            >
+              <mat-icon>arrow_back</mat-icon>
+              Retour
+            </button>
+
+            <button 
+              mat-raised-button 
+              color="primary" 
+              type="submit"
+              [disabled]="isLoading || loginForm.get('code')?.invalid"
+              class="action-button"
+            >
+              <mat-spinner *ngIf="isLoading" diameter="20" class="spinner"></mat-spinner>
+              <mat-icon *ngIf="!isLoading">login</mat-icon>
+              {{ isLoading ? 'Vérification...' : 'Se connecter' }}
+            </button>
+          </div>
+        </div>
+
+      </form>
+    </mat-card-content>
+
+    <mat-card-actions>
+      <div class="help-text">
+        <p>
+          <mat-icon>info</mat-icon>
+          Le code de vérification a été envoyé à votre adresse email.
+        </p>
+        <p>
+          <mat-icon>security</mat-icon>
+          Votre connexion est sécurisée et vos données sont protégées.
+        </p>
+      </div>
+    </mat-card-actions>
+
+    <mat-card-footer class="login-footer">
+      <div class="register-link-container">
+        <p>Pas encore de compte organisation ?</p>
+        <button mat-button 
+                color="primary" 
+                routerLink="/register/organisation"
+                class="register-link">
+          <mat-icon>business</mat-icon>
+          Créer un compte organisation
+        </button>
+      </div>
+    </mat-card-footer>
+  </mat-card>
+</div>

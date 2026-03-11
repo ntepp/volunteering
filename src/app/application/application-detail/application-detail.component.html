@@ -1,1 +1,90 @@
-<p>application-detail works!</p>
+<div class="detail-container">
+
+  <div class="page-header">
+    <button mat-button class="back-button" (click)="goBack()">
+      <mat-icon>arrow_back</mat-icon>
+      Mes candidatures
+    </button>
+  </div>
+
+  <!-- Données disponibles via navigation state -->
+  <div *ngIf="application; else noData">
+    <mat-card class="detail-card">
+      <mat-card-header class="detail-header">
+        <mat-icon mat-card-avatar class="header-avatar">assignment</mat-icon>
+        <mat-card-title class="detail-title">Détail de la candidature</mat-card-title>
+        <mat-card-subtitle>
+          Réf. candidature : <strong>#{{ application.id }}</strong>
+        </mat-card-subtitle>
+      </mat-card-header>
+
+      <mat-card-content class="detail-content">
+
+        <!-- Statut -->
+        <div class="status-section">
+          <span class="status-badge" [class]="'badge-' + application.status.toLowerCase()">
+            <mat-icon>{{ getStatusIcon(application.status) }}</mat-icon>
+            {{ getStatusLabel(application.status) }}
+          </span>
+        </div>
+
+        <!-- Infos -->
+        <div class="info-grid">
+          <div class="info-item">
+            <mat-icon class="info-icon">work_outline</mat-icon>
+            <div class="info-content">
+              <span class="info-label">Opportunité</span>
+              <span class="info-value">#{{ application.opportunityId }}</span>
+            </div>
+          </div>
+
+          <div class="info-item">
+            <mat-icon class="info-icon">person</mat-icon>
+            <div class="info-content">
+              <span class="info-label">Volontaire</span>
+              <span class="info-value">#{{ application.volunteeringId }}</span>
+            </div>
+          </div>
+
+          <div class="info-item">
+            <mat-icon class="info-icon">event_available</mat-icon>
+            <div class="info-content">
+              <span class="info-label">Date de candidature</span>
+              <span class="info-value">{{ application.appliedAt | date:'dd/MM/yyyy à HH:mm' }}</span>
+            </div>
+          </div>
+
+          <div class="info-item" *ngIf="application.updatedAt">
+            <mat-icon class="info-icon">update</mat-icon>
+            <div class="info-content">
+              <span class="info-label">Dernière mise à jour</span>
+              <span class="info-value">{{ application.updatedAt | date:'dd/MM/yyyy à HH:mm' }}</span>
+            </div>
+          </div>
+        </div>
+
+      </mat-card-content>
+
+      <mat-card-actions class="detail-actions">
+        <button mat-button (click)="goBack()">
+          <mat-icon>arrow_back</mat-icon>
+          Retour à la liste
+        </button>
+      </mat-card-actions>
+    </mat-card>
+  </div>
+
+  <!-- Accès direct à l'URL sans state -->
+  <ng-template #noData>
+    <div class="empty-state">
+      <mat-icon class="empty-icon">search_off</mat-icon>
+      <h2 class="empty-title">Candidature introuvable</h2>
+      <p class="empty-subtitle">Accédez à cette page depuis la liste de vos candidatures.</p>
+      <button mat-raised-button color="primary" (click)="goBack()">
+        <mat-icon>arrow_back</mat-icon>
+        Voir mes candidatures
+      </button>
+    </div>
+  </ng-template>
+
+</div>
