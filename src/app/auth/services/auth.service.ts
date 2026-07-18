@@ -1,7 +1,7 @@
 import { Injectable } from '@angular/core';
 import { HttpClient, HttpErrorResponse } from '@angular/common/http';
-import { Observable, throwError } from 'rxjs';
-import { catchError, map } from 'rxjs/operators';
+import { BehaviorSubject, Observable, tap, throwError } from 'rxjs';
+import { catchError } from 'rxjs/operators';
 import { environment } from '../../../environments/environment';
 
 export interface SendCodeRequest {
@@ -14,13 +14,20 @@ export interface VerifyCodeRequest {
 }
 
 export interface VerifyCodeResponse {
-  token: string;
   user?: any;
   role?: string;
+  message?: string;
+  success?: boolean;
 }
 
 export interface ApiError {
   message: string;
+}
+
+export interface UserSessionData {
+  user: string | null;
+  role: string | null;
+  userId: string | null;
 }
 
 @Injectable({
@@ -29,120 +36,123 @@ export interface ApiError {
 export class AuthService {
   private readonly apiUrl = environment.apiSecurityUrl || 'http://localhost:8080';
 
+  private readonly _isAuthenticated$ = new BehaviorSubject<boolean>(this.isAuthenticated());
+  readonly isAuthenticated$ = this._isAuthenticated$.asObservable();
+
   constructor(private http: HttpClient) {}
 
   sendCode(request: SendCodeRequest): Observable<void> {
     return this.http.post<void>(`${this.apiUrl}/api/auth/send-code`, request)
-      .pipe(
-        catchError(this.handleError)
-      );
+      .pipe(catchError(this.handleError));
+  }
+
+  resetPassword(request: { email: string; code: string; newPassword: string }): Observable<{ success: boolean; message: string }> {
+    return this.http.post<{ success: boolean; message: string }>(`${this.apiUrl}/api/auth/reset-password`, request)
+      .pipe(catchError(this.handleError));
   }
 
   verifyCode(request: VerifyCodeRequest): Observable<VerifyCodeResponse> {
     return this.http.post<VerifyCodeResponse>(`${this.apiUrl}/api/auth/verify-code`, request)
+      .pipe(catchError(this.handleError));
+  }
+
+  login(credentials: { email: string; password: string }): Observable<any> {
+    return this.http.post<any>(`${this.apiUrl}/api/auth/login`, credentials)
+      .pipe(catchError(this.handleError));
+  }
+
+  signup(userData: any): Observable<any> {
+    return this.http.post<any>(`${this.apiUrl}/api/auth/signup`, userData)
+      .pipe(catchError(this.handleError));
+  }
+
+  logout(): Observable<void> {
+    return this.http.post<void>(`${this.apiUrl}/api/auth/logout`, {})
       .pipe(
-        catchError(this.handleError)
+        tap(() => this.clearUserData()),
+        catchError(() => {
+          this.clearUserData();
+          return throwError(() => new Error('Erreur lors de la déconnexion'));
+        })
       );
   }
 
-  saveToken(token: string): void {
+  getMyProfile(): Observable<any> {
+    return this.http.get<any>(`${this.apiUrl}/api/v1/volunteers/me`)
+      .pipe(catchError(this.handleError));
+  }
+
+  updateMyProfile(data: any): Observable<any> {
+    return this.http.put<any>(`${this.apiUrl}/api/v1/volunteers/me`, data)
+      .pipe(catchError(this.handleError));
+  }
+
+  saveUserData(response: any): void {
     if (typeof window !== 'undefined') {
-      localStorage.setItem('auth_token', token);
+      localStorage.setItem('user', JSON.stringify(response.user));
+      localStorage.setItem('role', response.role);
+      if (response.userId != null) {
+        localStorage.setItem('userId', String(response.userId));
+      }
+      this._isAuthenticated$.next(true);
     }
   }
 
-  getToken(): string | null {
+  getUserData(): UserSessionData | null {
     if (typeof window !== 'undefined') {
-      return localStorage.getItem('auth_token');
+      return {
+        user: localStorage.getItem('user'),
+        role: localStorage.getItem('role'),
+        userId: localStorage.getItem('userId')
+      };
     }
     return null;
   }
 
-  clearToken(): void {
+  getUserRole(): string | null {
     if (typeof window !== 'undefined') {
-      localStorage.removeItem('auth_token');
+      return localStorage.getItem('role');
+    }
+    return null;
+  }
+
+  clearUserData(): void {
+    if (typeof window !== 'undefined') {
+      localStorage.removeItem('user');
+      localStorage.removeItem('role');
+      localStorage.removeItem('userId');
+      this._isAuthenticated$.next(false);
     }
   }
 
   isAuthenticated(): boolean {
-    return !!this.getToken();
-  }
-
-  /**
-   * Inscription d'un nouvel utilisateur
-   */
-  signup(userData: any): Observable<any> {
-    return this.http.post<any>(`${this.apiUrl}/api/auth/signup`, userData)
-      .pipe(
-        catchError(this.handleError)
-      );
-  }
-
-  /**
-   * Connexion d'un utilisateur
-   */
-  login(credentials: { email: string; password: string }): Observable<any> {
-    return this.http.post<any>(`${this.apiUrl}/api/auth/login`, credentials)
-      .pipe(
-        catchError(this.handleError)
-      );
-  }
-
-  /**
-   * Sauvegarde des données utilisateur après connexion
-   */
-  saveUserData(response : any): void {
     if (typeof window !== 'undefined') {
-      // Sauvegarder le token dans auth_token pour cohérence avec isAuthenticated()
-      localStorage.setItem('auth_token', response.token);
-      // Sauvegarder aussi dans authToken pour compatibilité
-      localStorage.setItem('authToken', response.token);
-      localStorage.setItem('user', JSON.stringify(response.user));
-      localStorage.setItem('role', response.role);
+      return !!localStorage.getItem('user');
     }
-  }
-
-  /**
-   * Récupération des données utilisateur
-   */
-  getUserData(): any | null {
-    if (typeof window !== 'undefined') {
-      const userData = {"user": localStorage.getItem('user'), "role": localStorage.getItem('role')};
-      return userData ? userData: null;
-    }
-    return null;
-  }
-
-  /**
-   * Suppression des données utilisateur
-   */
-  clearUserData(): void {
-    if (typeof window !== 'undefined') {
-      localStorage.removeItem('auth_token');
-      localStorage.removeItem('authToken');
-      localStorage.removeItem('user');
-    }
+    return false;
   }
 
   private handleError(error: HttpErrorResponse): Observable<never> {
     let errorMessage = 'Une erreur est survenue';
-    
+
     if (error.error instanceof ErrorEvent) {
-      // Erreur côté client
       errorMessage = error.error.message;
     } else {
-      // Erreur côté serveur
-      if (error.status === 400) {
+      if (error.status === 0) {
+        errorMessage = 'Impossible de contacter le serveur. Vérifiez que le service est démarré.';
+      } else if (error.status === 400) {
         errorMessage = error.error?.message || 'Données invalides';
       } else if (error.status === 401) {
         errorMessage = 'Email ou mot de passe invalide';
       } else if (error.status === 404) {
         errorMessage = 'Service non trouvé';
+      } else if (error.status === 409) {
+        errorMessage = error.error?.message || 'Cet email est déjà utilisé.';
       } else if (error.status >= 500) {
         errorMessage = 'Erreur serveur';
       }
     }
-    
+
     return throwError(() => new Error(errorMessage));
   }
 }

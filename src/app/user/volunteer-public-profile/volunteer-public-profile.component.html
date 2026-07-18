@@ -1,0 +1,118 @@
+<div class="max-w-3xl mx-auto px-4 py-8">
+
+  <!-- Chargement -->
+  <div *ngIf="isLoading" class="flex justify-center py-20">
+    <div class="w-10 h-10 border-4 border-sky-200 border-t-sky-600 rounded-full animate-spin"></div>
+  </div>
+
+  <!-- Erreur -->
+  <div *ngIf="!isLoading && errorMessage"
+       class="flex items-center gap-3 p-4 bg-red-50 border border-red-200 rounded-xl text-red-700 text-sm">
+    <span class="material-icons text-lg">error_outline</span>
+    {{ errorMessage }}
+  </div>
+
+  <!-- Profil -->
+  <div *ngIf="!isLoading && !errorMessage && profile">
+
+    <!-- Hero Banner -->
+    <div class="bg-white border border-sky-100 rounded-xl shadow-sm overflow-hidden mb-5">
+      <div class="bg-gradient-to-r from-sky-50 to-sky-100 px-6 py-8 flex flex-col sm:flex-row items-center sm:items-start gap-5">
+
+        <!-- Avatar -->
+        <div class="w-20 h-20 rounded-full overflow-hidden bg-sky-100 border-2 border-sky-200 flex items-center justify-center text-sky-600 shrink-0">
+          <img *ngIf="profile.profileImage" [src]="profile.profileImage" alt="Photo de profil"
+               class="w-full h-full object-cover">
+          <span *ngIf="!profile.profileImage" class="material-icons text-4xl">person</span>
+        </div>
+
+        <!-- Nom + username -->
+        <div class="text-center sm:text-left">
+          <h1 class="text-2xl font-bold text-slate-800">
+            <ng-container *ngIf="profile.firstName || profile.lastName">
+              {{ profile.firstName || '' }} {{ profile.lastName || '' }}
+            </ng-container>
+            <span *ngIf="!profile.firstName && !profile.lastName"
+                  class="text-slate-400 font-normal">Bénévole anonyme</span>
+          </h1>
+          <p class="text-sm text-slate-500 mt-0.5">&#64;{{ profile.username }}</p>
+
+          <!-- Badges catégories dans le hero -->
+          <div *ngIf="profile.preferredCategories?.length" class="flex flex-wrap gap-1.5 mt-3 justify-center sm:justify-start">
+            <span *ngFor="let cat of profile.preferredCategories"
+                  class="px-2.5 py-1 bg-sky-200 text-sky-800 text-xs font-medium rounded-full">{{ cat }}</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Sections détails -->
+    <div class="bg-white border border-sky-100 rounded-xl shadow-sm p-6 space-y-5">
+
+      <!-- Bio -->
+      <div *ngIf="profile.bio">
+        <p class="text-xs font-medium text-slate-400 uppercase tracking-wide mb-1">Bio</p>
+        <p class="text-sm text-slate-700">{{ profile.bio }}</p>
+      </div>
+
+      <!-- Localisation -->
+      <div *ngIf="profile.city || profile.country">
+        <p class="text-xs font-medium text-slate-400 uppercase tracking-wide mb-1">Localisation</p>
+        <p class="text-sm text-slate-700 flex items-center gap-1">
+          <span class="material-icons text-slate-400 text-base">location_on</span>
+          {{ profile.city }}{{ profile.city && profile.country ? ', ' : '' }}{{ profile.country }}
+        </p>
+      </div>
+
+      <!-- Catégories préférées -->
+      <div *ngIf="profile.preferredCategories?.length">
+        <p class="text-xs font-medium text-slate-400 uppercase tracking-wide mb-2">Catégories préférées</p>
+        <div class="flex flex-wrap gap-2">
+          <span *ngFor="let cat of profile.preferredCategories"
+                class="px-2.5 py-1 bg-sky-100 text-sky-700 text-xs font-medium rounded-full">{{ cat }}</span>
+        </div>
+      </div>
+
+      <!-- Aucune info -->
+      <p *ngIf="!profile.bio && !profile.city && !profile.country && !profile.preferredCategories?.length"
+         class="text-sm text-slate-400 italic">Ce bénévole n'a pas encore renseigné d'informations sur son profil.</p>
+
+    </div>
+
+    <!-- ── Participations ── -->
+    <div class="bg-white border border-sky-100 rounded-xl shadow-sm p-6 mt-5">
+      <div class="flex items-center gap-2 mb-4">
+        <span class="material-icons text-warm-500">military_tech</span>
+        <h2 class="text-base font-semibold text-slate-700">Participations</h2>
+        <span *ngIf="participations.length" class="px-2 py-0.5 bg-orange-50 text-warm-600 text-xs font-semibold rounded-full">
+          {{ participations.length }}
+        </span>
+      </div>
+
+      <div *ngIf="isLoadingParticipations" class="flex justify-center py-6">
+        <div class="w-6 h-6 border-4 border-sky-200 border-t-sky-600 rounded-full animate-spin"></div>
+      </div>
+
+      <ul *ngIf="!isLoadingParticipations && participations.length > 0" class="space-y-2">
+        <li *ngFor="let p of participations">
+          <a [routerLink]="['/volunteering/opportunities', p.opportunityId]"
+             class="flex items-center gap-3 p-3 rounded-lg border border-slate-100 hover:border-sky-300 hover:bg-sky-50/40 transition-colors group">
+            <span class="w-8 h-8 rounded-full bg-green-100 text-green-600 flex items-center justify-center shrink-0">
+              <span class="material-icons text-base">check_circle</span>
+            </span>
+            <span class="flex-1 min-w-0">
+              <span class="block text-sm font-medium text-slate-700 truncate group-hover:text-sky-700 transition-colors">{{ p.title }}</span>
+              <span class="block text-xs text-slate-400">Acceptée le {{ p.date | date:'dd/MM/yyyy' }}</span>
+            </span>
+            <span class="material-icons text-slate-300 group-hover:text-sky-500 transition-colors text-lg">chevron_right</span>
+          </a>
+        </li>
+      </ul>
+
+      <p *ngIf="!isLoadingParticipations && participations.length === 0"
+         class="text-sm text-slate-400 italic">Aucune participation pour le moment.</p>
+    </div>
+
+  </div>
+
+</div>

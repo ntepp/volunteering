@@ -4,7 +4,7 @@ import { HttpClient, HttpHeaders, HttpParams, HttpResponse, HttpErrorResponse } 
 import { catchError, map } from 'rxjs/operators';
 import { environment } from '../../../environments/environment.development';
 import { OpportunityPagination } from '../../models/opportunity-pagination.model';
-import { Opportunity, CreateOpportunityRequest } from '../../models/opportunity.model';
+import { Opportunity, CreateOpportunityRequest, FeedResponse } from '../../models/opportunity.model';
 import { Router } from '@angular/router';
 import { Category } from '../../models/category.model';
 import { AuthService } from '../../auth/services/auth.service';
@@ -42,17 +42,19 @@ export class OpportunityService {
   getOpportunitiesWithFilters(options: {
     page: number;
     size: number;
-    categoryId?: string | null;
+    category?: string | null;
     town?: string | null;
     startDate?: string | null; // YYYY-MM-DD
     title?: string | null;
+    workType?: string | null;
+    status?: string | null;
   }): Observable<OpportunityPagination> {
     let params = new HttpParams()
       .set('page', String(options.page))
       .set('size', String(options.size));
 
-    if (options.categoryId) {
-      params = params.set('categoryId', options.categoryId);
+    if (options.category) {
+      params = params.set('category', options.category);
     }
     if (options.town) {
       params = params.set('town', options.town);
@@ -63,10 +65,51 @@ export class OpportunityService {
     if (options.title) {
       params = params.set('title', options.title);
     }
+    if (options.workType) {
+      params = params.set('workType', options.workType);
+    }
+    if (options.status) {
+      params = params.set('status', options.status);
+    }
 
     return this.http.get<OpportunityPagination>(this.apiUrl, { params }).pipe(
       catchError(this.handleError)
     );
+  }
+
+  /**
+   * Récupère les opportunités d'une organisation par son ID
+   */
+  getOpportunitiesByOrgId(orgId: number, page: number, size: number): Observable<OpportunityPagination> {
+    const params = new HttpParams()
+      .set('page', String(page))
+      .set('size', String(size));
+    return this.http.get<OpportunityPagination>(`${this.apiUrl}/organization/${orgId}`, { params })
+      .pipe(catchError(this.handleError));
+  }
+
+  /**
+   * Met à jour une opportunité par son ID (requiert auth cookie ORGANIZATION)
+   */
+  updateOpportunity(id: string, data: CreateOpportunityRequest): Observable<any> {
+    return this.http.put(`${this.apiUrl}/${id}`, data)
+      .pipe(catchError(this.handleError));
+  }
+
+  /**
+   * Supprime une opportunité par son ID (requiert auth cookie ORGANIZATION)
+   */
+  deleteOpportunity(id: string): Observable<void> {
+    return this.http.delete<void>(`${this.apiUrl}/${id}`)
+      .pipe(catchError(this.handleError));
+  }
+
+  /**
+   * Récupère une opportunité par son ID
+   */
+  getOpportunityById(id: string): Observable<Opportunity> {
+    return this.http.get<Opportunity>(`${this.apiUrl}/${id}`)
+      .pipe(catchError(this.handleError));
   }
 
   /**
@@ -96,6 +139,17 @@ export class OpportunityService {
         }),
         catchError(this.handleError)
       );
+  }
+
+  /**
+   * Récupère le feed personnalisé (preferred + recent)
+   */
+  getFeed(preferredCategories: string[] = []): Observable<FeedResponse> {
+    const params = preferredCategories.length > 0
+      ? `?preferredCategories=${preferredCategories.join(',')}`
+      : '';
+    return this.http.get<FeedResponse>(`${this.apiUrl}/feed${params}`)
+      .pipe(catchError(this.handleError));
   }
 
   /**

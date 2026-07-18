@@ -1,183 +1,207 @@
-<mat-toolbar color="primary" class="header-toolbar">
-  <mat-toolbar-row class="header-row">
-    
-    <!-- Logo -->
-    <div class="logo-section">
-      <a routerLink="/" class="logo-link">
-        <mat-icon class="logo-icon">volunteer_activism</mat-icon>
-        <span class="logo-text">Je Suis Utile</span>
+<!-- ===== Header — Tailwind ===== -->
+<header class="sticky top-0 z-50 bg-white border-b border-sky-200 shadow-sm">
+  <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+    <div class="flex items-center justify-between h-16">
+
+      <!-- Logo -->
+      <a routerLink="/" class="flex items-center gap-2 text-sky-600 hover:opacity-80 transition-opacity no-underline">
+        <span class="material-icons text-3xl">volunteer_activism</span>
+        <span class="text-xl font-bold tracking-tight font-sans">Je Suis Utile</span>
       </a>
-    </div>
 
-    <!-- Navigation principale (Desktop) -->
-    <nav class="main-nav" *ngIf="!isMenuOpen">
-      <button mat-button
-              routerLink="/volunteering/opportunities"
-              routerLinkActive="active"
-              class="nav-button"
-              aria-label="Trouver une opportunité">
-        <mat-icon>search</mat-icon>
-        <span class="nav-text">Trouver une opportunité</span>
-      </button>
-
-      <button mat-button
-              (click)="onPublishOpportunity()"
-              [class.active]="router.url === '/volunteering/opportunities/create'"
-              class="nav-button"
-              aria-label="Publier une opportunité">
-        <mat-icon>volunteer_activism</mat-icon>
-        <span class="nav-text">Publier une opportunité</span>
-      </button>
-    </nav>
-
-    <!-- Actions utilisateur (Desktop) -->
-    <div class="user-actions" *ngIf="!isMenuOpen">
-      
-      <!-- Utilisateur connecté -->
-      <div *ngIf="isAuthenticated" class="authenticated-user">
-        <button mat-button
-                [matMenuTriggerFor]="userMenu"
-                class="user-menu-button"
-                [attr.aria-label]="'Menu de ' + (user?.firstName || 'mon compte')">
-          <mat-icon>account_circle</mat-icon>
-          <span class="user-name">{{ user?.firstName || 'Mon compte' }}</span>
-          <mat-icon>arrow_drop_down</mat-icon>
+      <!-- Navigation desktop -->
+      <nav class="hidden lg:flex items-center gap-1">
+        <a routerLink="/volunteering/opportunities"
+           routerLinkActive="bg-sky-100 text-sky-600"
+           [routerLinkActiveOptions]="{ exact: true }"
+           class="flex items-center gap-1.5 px-3 py-2 rounded-lg text-sm font-medium text-slate-700 hover:bg-sky-50 hover:text-sky-600 transition-colors">
+          <span class="material-icons text-lg">search</span>
+          Trouver une opportunité
+        </a>
+        <!-- CTA réservé aux organisations et aux visiteurs (pas aux volontaires connectés) -->
+        <button *ngIf="!isVolunteer" (click)="onPublishOpportunity()"
+                [class.bg-sky-100]="router.url === '/volunteering/opportunities/create'"
+                [class.text-sky-600]="router.url === '/volunteering/opportunities/create'"
+                class="flex items-center gap-1.5 px-3 py-2 rounded-lg text-sm font-medium text-slate-700 hover:bg-sky-50 hover:text-sky-600 transition-colors">
+          <span class="material-icons text-lg">volunteer_activism</span>
+          Publier une opportunité
         </button>
-        
-        <mat-menu #userMenu="matMenu" class="user-menu">
-          <button mat-menu-item (click)="onMyAccount()">
-            <mat-icon>person</mat-icon>
-            <span>Mon profil</span>
+      </nav>
+
+      <!-- Actions desktop -->
+      <div class="hidden lg:flex items-center gap-2">
+
+        <!-- Notifications (volontaire) -->
+        <a *ngIf="isAuthenticated && isVolunteer" routerLink="/notifications"
+           routerLinkActive="bg-sky-100 text-sky-600"
+           class="relative p-2 rounded-lg text-slate-600 hover:bg-sky-50 hover:text-sky-600 transition-colors"
+           title="Notifications" aria-label="Notifications">
+          <span class="material-icons text-xl block">notifications</span>
+          <span *ngIf="unreadCount > 0"
+                class="absolute -top-0.5 -right-0.5 min-w-[18px] h-[18px] px-1 bg-warm-500 text-white text-[10px] font-bold rounded-full flex items-center justify-center leading-none">
+            {{ unreadCount > 9 ? '9+' : unreadCount }}
+          </span>
+        </a>
+
+        <!-- Connecté -->
+        <div *ngIf="isAuthenticated" class="relative user-menu-wrapper">
+          <button (click)="toggleUserMenu()"
+                  class="flex items-center gap-2 px-2.5 py-1.5 rounded-lg text-sm font-medium text-slate-700 hover:bg-sky-50 hover:text-sky-600 transition-colors">
+            <span class="w-8 h-8 rounded-full overflow-hidden bg-sky-100 flex items-center justify-center text-sky-600 shrink-0">
+              <img *ngIf="avatarUrl" [src]="avatarUrl" alt="" class="w-full h-full object-cover">
+              <span *ngIf="!avatarUrl" class="material-icons text-xl">{{ isOrganization ? 'business' : 'account_circle' }}</span>
+            </span>
+            <span class="max-w-[140px] truncate">{{ displayName || 'Mon compte' }}</span>
+            <span class="material-icons text-base transition-transform duration-200"
+                  [class.rotate-180]="isUserMenuOpen">expand_more</span>
           </button>
-          <button mat-menu-item routerLink="/volunteering/opportunities/my">
-            <mat-icon>work</mat-icon>
-            <span>Mes opportunités</span>
-          </button>
-          <button mat-menu-item routerLink="/applications">
-            <mat-icon>assignment</mat-icon>
-            <span>Mes candidatures</span>
-          </button>
-          <mat-divider></mat-divider>
-          <button mat-menu-item (click)="onLogout()">
-            <mat-icon>logout</mat-icon>
-            <span>Se déconnecter</span>
-          </button>
-        </mat-menu>
+
+          <!-- Dropdown -->
+          <div *ngIf="isUserMenuOpen"
+               class="absolute right-0 mt-2 w-52 bg-white border border-sky-100 rounded-xl shadow-lg py-1 z-50 animate-fadeIn">
+            <ng-container *ngIf="isVolunteer">
+              <a routerLink="/profile" (click)="closeMenu()"
+                 class="flex items-center gap-3 px-4 py-2.5 text-sm text-slate-700 hover:bg-sky-50 hover:text-sky-600 transition-colors">
+                <span class="material-icons text-lg">person</span>
+                Mon profil
+              </a>
+              <a routerLink="/applications" (click)="closeMenu()"
+                 class="flex items-center gap-3 px-4 py-2.5 text-sm text-slate-700 hover:bg-sky-50 hover:text-sky-600 transition-colors">
+                <span class="material-icons text-lg">assignment</span>
+                Mes candidatures
+              </a>
+            </ng-container>
+            <ng-container *ngIf="isOrganization">
+              <a routerLink="/volunteering/opportunities/my" (click)="closeMenu()"
+                 class="flex items-center gap-3 px-4 py-2.5 text-sm text-slate-700 hover:bg-sky-50 hover:text-sky-600 transition-colors">
+                <span class="material-icons text-lg">work</span>
+                Mes opportunités
+              </a>
+              <a routerLink="/volunteering/opportunities/create" (click)="closeMenu()"
+                 class="flex items-center gap-3 px-4 py-2.5 text-sm text-slate-700 hover:bg-sky-50 hover:text-sky-600 transition-colors">
+                <span class="material-icons text-lg">add_circle</span>
+                Publier une opportunité
+              </a>
+            </ng-container>
+            <hr class="my-1 border-sky-100">
+            <button (click)="onLogout()"
+                    class="flex items-center gap-3 w-full px-4 py-2.5 text-sm text-red-600 hover:bg-red-50 transition-colors">
+              <span class="material-icons text-lg">logout</span>
+              Se déconnecter
+            </button>
+          </div>
+        </div>
+
+        <!-- Non connecté -->
+        <div *ngIf="!isAuthenticated" class="flex items-center gap-1">
+          <a routerLink="/register/volonteer"
+             class="flex items-center gap-1.5 px-3 py-2 rounded-lg text-xs font-medium text-slate-600 hover:bg-sky-50 hover:text-sky-600 transition-colors">
+            <span class="material-icons text-base">person_add</span>
+            Volontaire
+          </a>
+          <a routerLink="/register/organisation"
+             class="flex items-center gap-1.5 px-3 py-2 rounded-lg text-xs font-medium text-slate-600 hover:bg-sky-50 hover:text-sky-600 transition-colors">
+            <span class="material-icons text-base">business</span>
+            Organisation
+          </a>
+          <a routerLink="/login"
+             class="flex items-center gap-1.5 px-3 py-2 rounded-lg text-sm font-medium text-white bg-sky-600 hover:bg-sky-700 transition-colors">
+            <span class="material-icons text-base">login</span>
+            Connexion
+          </a>
+        </div>
       </div>
 
-      <!-- Utilisateur non connecté -->
-      <div *ngIf="!isAuthenticated" class="guest-user">
-        <button mat-button 
-                routerLink="/register/volonteer" 
-                class="auth-button">
-          <mat-icon>person_add</mat-icon>
-          <span>Enregistrer un volontaire</span>
-        </button>
-        <button mat-button 
-                routerLink="/register/organisation" 
-                class="auth-button">
-          <mat-icon>business</mat-icon>
-          <span>Enregistrer une organisation</span>
-        </button>
-        <button mat-button 
-                routerLink="/login" 
-                class="auth-button">
-          <mat-icon>login</mat-icon>
-          <span>Espace volontaire</span>
-        </button>
-        <button mat-button 
-                routerLink="/login/organisation" 
-                class="auth-button">
-          <mat-icon>business_center</mat-icon>
-          <span>Espace organisation</span>
-        </button>
-      </div>
+      <!-- Burger mobile -->
+      <button (click)="toggleMenu()"
+              class="lg:hidden p-2 rounded-lg text-slate-700 hover:bg-sky-50 hover:text-sky-600 transition-colors"
+              [attr.aria-label]="isMenuOpen ? 'Fermer le menu' : 'Ouvrir le menu'"
+              [attr.aria-expanded]="isMenuOpen">
+        <span class="material-icons">{{ isMenuOpen ? 'close' : 'menu' }}</span>
+      </button>
     </div>
-
-    <!-- Menu mobile -->
-    <button mat-icon-button
-            (click)="toggleMenu()"
-            class="mobile-menu-button"
-            [class.menu-open]="isMenuOpen"
-            [attr.aria-label]="isMenuOpen ? 'Fermer le menu' : 'Ouvrir le menu'"
-            [attr.aria-expanded]="isMenuOpen">
-      <mat-icon>{{ isMenuOpen ? 'close' : 'menu' }}</mat-icon>
-    </button>
-  </mat-toolbar-row>
+  </div>
 
   <!-- Menu mobile déroulant -->
-  <mat-toolbar-row class="mobile-menu" *ngIf="isMenuOpen">
-    <div class="mobile-nav-content">
-      
-      <!-- Navigation mobile -->
-      <div class="mobile-nav-section">
-        <button mat-button 
-                routerLink="/volunteering/opportunities" 
-                (click)="closeMenu()"
-                class="mobile-nav-button">
-          <mat-icon>search</mat-icon>
-          <span>Trouver une opportunité</span>
-        </button>
-        
-        <button mat-button 
-                (click)="onPublishOpportunity(); closeMenu()"
-                class="mobile-nav-button">
-          <mat-icon>volunteer_activism</mat-icon>
-          <span>Publier une opportunité</span>
-        </button>
-      </div>
+  <div *ngIf="isMenuOpen" class="lg:hidden border-t border-sky-100 bg-sky-50 animate-slideDown">
+    <div class="max-w-7xl mx-auto px-4 py-3 flex flex-col gap-1">
 
-      <!-- Actions utilisateur mobile -->
-      <div class="mobile-user-section" *ngIf="isAuthenticated">
-        <button mat-button (click)="onMyAccount(); closeMenu()" class="mobile-nav-button">
-          <mat-icon>person</mat-icon>
-          <span>Mon profil</span>
-        </button>
-        <button mat-button routerLink="/volunteering/opportunities/my" (click)="closeMenu()" class="mobile-nav-button">
-          <mat-icon>work</mat-icon>
-          <span>Mes opportunités</span>
-        </button>
-        <button mat-button routerLink="/applications" (click)="closeMenu()" class="mobile-nav-button">
-          <mat-icon>assignment</mat-icon>
-          <span>Mes candidatures</span>
-        </button>
-        <button mat-button (click)="onLogout(); closeMenu()" class="mobile-nav-button logout-button">
-          <mat-icon>logout</mat-icon>
-          <span>Se déconnecter</span>
-        </button>
-      </div>
+      <!-- Nav links -->
+      <a routerLink="/volunteering/opportunities" (click)="closeMenu()"
+         class="flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium text-slate-700 hover:bg-white hover:text-sky-600 transition-colors">
+        <span class="material-icons">search</span>
+        Trouver une opportunité
+      </a>
+      <button *ngIf="!isVolunteer" (click)="onPublishOpportunity(); closeMenu()"
+              class="flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium text-slate-700 hover:bg-white hover:text-sky-600 transition-colors w-full text-left">
+        <span class="material-icons">volunteer_activism</span>
+        Publier une opportunité
+      </button>
 
-      <!-- Actions invité mobile -->
-      <div class="mobile-guest-section" *ngIf="!isAuthenticated">
-        <button mat-button 
-                routerLink="/register/volonteer" 
-                (click)="closeMenu()" 
-                class="mobile-nav-button">
-          <mat-icon>person_add</mat-icon>
-          <span>Enregistrer un volontaire</span>
+      <hr class="my-1 border-sky-200">
+
+      <!-- Connecté mobile -->
+      <ng-container *ngIf="isAuthenticated">
+        <ng-container *ngIf="isVolunteer">
+          <a routerLink="/profile" (click)="closeMenu()"
+             class="flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium text-slate-700 hover:bg-white hover:text-sky-600 transition-colors">
+            <span class="material-icons">person</span>
+            Mon profil
+          </a>
+          <a routerLink="/applications" (click)="closeMenu()"
+             class="flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium text-slate-700 hover:bg-white hover:text-sky-600 transition-colors">
+            <span class="material-icons">assignment</span>
+            Mes candidatures
+          </a>
+          <a routerLink="/notifications" (click)="closeMenu()"
+             class="flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium text-slate-700 hover:bg-white hover:text-sky-600 transition-colors">
+            <span class="material-icons">notifications</span>
+            Notifications
+          </a>
+        </ng-container>
+        <ng-container *ngIf="isOrganization">
+          <a routerLink="/volunteering/opportunities/my" (click)="closeMenu()"
+             class="flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium text-slate-700 hover:bg-white hover:text-sky-600 transition-colors">
+            <span class="material-icons">work</span>
+            Mes opportunités
+          </a>
+          <a routerLink="/volunteering/opportunities/create" (click)="closeMenu()"
+             class="flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium text-slate-700 hover:bg-white hover:text-sky-600 transition-colors">
+            <span class="material-icons">add_circle</span>
+            Publier une opportunité
+          </a>
+        </ng-container>
+        <button (click)="onLogout()"
+                class="flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium text-red-600 hover:bg-red-50 transition-colors w-full text-left">
+          <span class="material-icons">logout</span>
+          Se déconnecter
         </button>
-        <button mat-button 
-                routerLink="/register/organisation" 
-                (click)="closeMenu()" 
-                class="mobile-nav-button">
-          <mat-icon>business</mat-icon>
-          <span>Enregistrer une organisation</span>
-        </button>
-        <button mat-button 
-                routerLink="/login" 
-                (click)="closeMenu()" 
-                class="mobile-nav-button">
-          <mat-icon>login</mat-icon>
-          <span>Espace volontaire</span>
-        </button>
-        <button mat-button 
-                routerLink="/login/organisation" 
-                (click)="closeMenu()" 
-                class="mobile-nav-button">
-          <mat-icon>business_center</mat-icon>
-          <span>Espace organisation</span>
-        </button>
-      </div>
+      </ng-container>
+
+      <!-- Non connecté mobile -->
+      <ng-container *ngIf="!isAuthenticated">
+        <a routerLink="/register/volonteer" (click)="closeMenu()"
+           class="flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium text-slate-700 hover:bg-white hover:text-sky-600 transition-colors">
+          <span class="material-icons">person_add</span>
+          Enregistrer un volontaire
+        </a>
+        <a routerLink="/register/organisation" (click)="closeMenu()"
+           class="flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium text-slate-700 hover:bg-white hover:text-sky-600 transition-colors">
+          <span class="material-icons">business</span>
+          Enregistrer une organisation
+        </a>
+        <a routerLink="/login" (click)="closeMenu()"
+           class="flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium text-slate-700 hover:bg-white hover:text-sky-600 transition-colors">
+          <span class="material-icons">login</span>
+          Espace volontaire
+        </a>
+        <a routerLink="/login/organisation" (click)="closeMenu()"
+           class="flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium text-slate-700 hover:bg-white hover:text-sky-600 transition-colors">
+          <span class="material-icons">business_center</span>
+          Espace organisation
+        </a>
+      </ng-container>
+
     </div>
-  </mat-toolbar-row>
-</mat-toolbar>
+  </div>
+</header>

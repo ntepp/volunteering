@@ -1,4 +1,7 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
+import { provideRouter } from '@angular/router';
+import { ActivatedRoute } from '@angular/router';
+import { of } from 'rxjs';
 
 import { ApplicationDetailComponent } from './application-detail.component';
 
@@ -8,7 +11,11 @@ describe('ApplicationDetailComponent', () => {
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
-      imports: [ApplicationDetailComponent]
+      imports: [ApplicationDetailComponent],
+      providers: [
+        provideRouter([]),
+        { provide: ActivatedRoute, useValue: { snapshot: { params: {} }, params: of({}) } }
+      ]
     })
     .compileComponents();
 

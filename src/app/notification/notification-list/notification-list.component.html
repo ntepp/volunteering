@@ -1,44 +1,104 @@
-<div class="notification-container">
+<div class="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
 
-  <div class="page-header">
-    <div class="header-left">
-      <mat-icon class="header-icon">notifications</mat-icon>
-      <h1 class="page-title">Notifications</h1>
-      <span class="unread-badge" *ngIf="unreadCount > 0">{{ unreadCount }}</span>
+  <!-- Header -->
+  <div class="flex items-center justify-between mb-6">
+    <div class="flex items-center gap-3">
+      <span class="material-icons text-sky-500 text-3xl">notifications</span>
+      <h1 class="text-2xl font-bold text-slate-800">Notifications</h1>
+      <span *ngIf="unreadCount > 0"
+            class="px-2 py-0.5 bg-warm-500 text-white text-xs font-semibold rounded-full">
+        {{ unreadCount }}
+      </span>
     </div>
-    <button mat-button color="primary"
-            *ngIf="notifications.length > 0 && unreadCount > 0"
-            (click)="markAllRead()">
-      <mat-icon>done_all</mat-icon>
+    <button *ngIf="notifications.length > 0 && unreadCount > 0"
+            (click)="markAllRead()" type="button"
+            class="flex items-center gap-1.5 px-3 py-2 text-sm font-medium text-sky-600 hover:bg-sky-50 rounded-lg transition-colors">
+      <span class="material-icons text-base">done_all</span>
       Tout marquer comme lu
     </button>
   </div>
 
-  <!-- Liste des notifications -->
-  <div class="notifications-list" *ngIf="notifications.length > 0; else emptyState">
-    <mat-card
-      class="notification-card"
-      [class.unread]="!n.read"
-      *ngFor="let n of notifications"
-      (click)="markRead(n)">
-      <mat-card-content class="notif-content">
-        <mat-icon class="notif-icon">{{ n.icon }}</mat-icon>
-        <div class="notif-body">
-          <p class="notif-message">{{ n.message }}</p>
-          <span class="notif-date">{{ n.date | date:'dd/MM/yyyy à HH:mm' }}</span>
-        </div>
-        <span class="unread-dot" *ngIf="!n.read"></span>
-      </mat-card-content>
-    </mat-card>
+  <!-- Non connecté -->
+  <div *ngIf="!isAuthenticated" class="flex flex-col items-center justify-center py-16 text-center">
+    <span class="material-icons text-slate-300 text-6xl mb-4">lock</span>
+    <h2 class="text-lg font-semibold text-slate-700 mb-1">Connectez-vous pour voir vos notifications</h2>
+    <p class="text-sm text-slate-400 mb-5">Suivez ici l'avancement de vos candidatures.</p>
+    <a routerLink="/login"
+       class="px-5 py-2.5 bg-sky-600 hover:bg-sky-700 text-white text-sm font-medium rounded-lg transition-colors">
+      Se connecter
+    </a>
   </div>
 
-  <!-- État vide -->
-  <ng-template #emptyState>
-    <div class="empty-state">
-      <mat-icon class="empty-icon">notifications_none</mat-icon>
-      <h2 class="empty-title">Aucune notification</h2>
-      <p class="empty-subtitle">Vous recevrez ici des alertes sur vos candidatures et les nouvelles opportunités.</p>
+  <!-- Organisation -->
+  <div *ngIf="isAuthenticated && !isVolunteer" class="flex flex-col items-center justify-center py-16 text-center">
+    <span class="material-icons text-slate-300 text-6xl mb-4">inbox</span>
+    <h2 class="text-lg font-semibold text-slate-700 mb-1">Retrouvez les candidatures reçues sur vos opportunités</h2>
+    <p class="text-sm text-slate-400 mb-5">Chaque opportunité affiche la liste des candidatures reçues.</p>
+    <a routerLink="/volunteering/opportunities/my"
+       class="px-5 py-2.5 bg-sky-600 hover:bg-sky-700 text-white text-sm font-medium rounded-lg transition-colors">
+      Voir mes opportunités
+    </a>
+  </div>
+
+  <!-- Volontaire -->
+  <ng-container *ngIf="isVolunteer">
+
+    <!-- Chargement -->
+    <div *ngIf="isLoading" class="flex justify-center py-16">
+      <div class="w-10 h-10 border-4 border-sky-200 border-t-sky-600 rounded-full animate-spin"></div>
     </div>
-  </ng-template>
+
+    <!-- Erreur -->
+    <div *ngIf="!isLoading && errorMessage"
+         class="flex items-center gap-3 p-4 bg-red-50 border border-red-200 rounded-xl text-red-700 text-sm">
+      <span class="material-icons text-lg">error_outline</span>
+      {{ errorMessage }}
+    </div>
+
+    <!-- Liste -->
+    <div *ngIf="!isLoading && !errorMessage && notifications.length > 0" class="space-y-2">
+      <div *ngFor="let n of notifications"
+           (click)="markRead(n)"
+           (keydown.enter)="markRead(n)"
+           tabindex="0"
+           role="button"
+           class="w-full text-left flex items-start gap-4 p-4 border rounded-xl transition-all hover:shadow-md cursor-pointer focus:outline-none focus:ring-2 focus:ring-sky-400"
+           [ngClass]="n.read ? 'bg-white border-slate-100' : 'bg-sky-50/40 border-sky-200'">
+        <span class="w-10 h-10 rounded-full flex items-center justify-center shrink-0 {{ n.iconClass }}">
+          <span class="material-icons text-lg">{{ n.icon }}</span>
+        </span>
+        <span class="flex-1 min-w-0">
+          <span class="block text-sm leading-snug"
+                [class.font-medium]="!n.read"
+                [class.text-slate-800]="!n.read"
+                [class.text-slate-500]="n.read">
+            {{ n.message }}
+          </span>
+          <span class="block text-xs text-slate-400 mt-1">{{ n.date | date:'dd/MM/yyyy à HH:mm' }}</span>
+        </span>
+        <a *ngIf="n.opportunityId"
+           [routerLink]="['/volunteering/opportunities', n.opportunityId]"
+           (click)="$event.stopPropagation()"
+           class="shrink-0 text-sky-500 hover:text-sky-700 transition-colors mt-1"
+           title="Voir l'opportunité">
+          <span class="material-icons text-lg">open_in_new</span>
+        </a>
+        <span *ngIf="!n.read" class="w-2.5 h-2.5 bg-warm-500 rounded-full shrink-0 mt-2" aria-label="Non lue"></span>
+      </div>
+    </div>
+
+    <!-- État vide -->
+    <div *ngIf="!isLoading && !errorMessage && notifications.length === 0"
+         class="flex flex-col items-center justify-center py-16 text-center">
+      <span class="material-icons text-slate-300 text-6xl mb-4">notifications_none</span>
+      <h2 class="text-lg font-semibold text-slate-700 mb-1">Aucune notification</h2>
+      <p class="text-sm text-slate-400 mb-5">Postulez à une opportunité pour suivre ici l'avancement de vos candidatures.</p>
+      <a routerLink="/volunteering/opportunities"
+         class="px-5 py-2.5 bg-sky-600 hover:bg-sky-700 text-white text-sm font-medium rounded-lg transition-colors">
+        Découvrir les opportunités
+      </a>
+    </div>
+
+  </ng-container>
 
 </div>

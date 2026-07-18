@@ -1,9 +1,5 @@
-import { UUID } from 'crypto';
-
-
-
 export class User {
-  public id!: UUID;  // Utilise une chaîne de caractères pour l'UUID
+  public id!: string;
   
   //public userName!: string;
   public password!: string;

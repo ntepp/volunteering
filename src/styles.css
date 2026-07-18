@@ -1,3 +1,8 @@
+/* ===== Tailwind CSS ===== */
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
 /* ===== CSS Variables — Océan & Confiance ===== */
 :root {
   --color-bg: #f0f9ff;
@@ -25,6 +30,23 @@ body {
   background: var(--color-bg);
   color: var(--color-text);
   min-height: 100vh;
+}
+
+/* ===== Layout global : header / contenu / footer ===== */
+app-root {
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
+}
+/* router-outlet est un élément vide : il ne doit occuper aucun espace */
+app-root > router-outlet {
+  flex: 0 0 auto;
+  height: 0;
+}
+/* Les composants routés prennent l'espace restant pour pousser le footer en bas */
+app-root > *:not(app-header):not(app-footer):not(router-outlet) {
+  flex: 1 1 auto;
+  display: block;
 }
 
 /* ===== Material MDC — couleur primaire océan ===== */

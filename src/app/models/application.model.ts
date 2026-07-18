@@ -1,25 +1,30 @@
+export type ApplicationStatus = 'PENDING' | 'VIEW' | 'ACCEPTED' | 'REJECTED' | 'CLOSED';
+
 export interface Application {
   id: string;
   volunteeringId: string;
   opportunityId: string;
-  status: 'PENDING' | 'ACCEPTED' | 'REJECTED';
+  status: ApplicationStatus;
+  motivationText?: string;
   appliedAt: string;
-  updatedAt: string;
+  updatedAt?: string;
 }
 
 export interface ApplicationRequest {
   volunteeringId: string;
   opportunityId: string;
-  status: 'PENDING' | 'ACCEPTED' | 'REJECTED';
+  motivationText?: string;
+  status: ApplicationStatus;
 }
 
 export interface ApplicationResponse {
   id: string;
   volunteeringId: string;
   opportunityId: string;
-  status: 'PENDING' | 'ACCEPTED' | 'REJECTED';
+  status: ApplicationStatus;
+  motivationText?: string;
   appliedAt: string;
-  updatedAt: string;
+  updatedAt?: string;
 }
 
 

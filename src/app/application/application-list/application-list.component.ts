@@ -1,31 +1,25 @@
 import { Component, OnInit, OnDestroy } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { Router } from '@angular/router';
-import { MatCardModule } from '@angular/material/card';
-import { MatButtonModule } from '@angular/material/button';
-import { MatIconModule } from '@angular/material/icon';
-import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
-import { Subject, takeUntil } from 'rxjs';
+import { Router, RouterModule } from '@angular/router';
+import { forkJoin, of, Subject, takeUntil } from 'rxjs';
+import { catchError } from 'rxjs/operators';
 
 import { CandidatureService } from '../../opportunity/services/candidature.service';
+import { OpportunityService } from '../../opportunity/services/opportunity.service';
 import { AuthService } from '../../auth/services/auth.service';
-import { ApplicationResponse } from '../../models/application.model';
+import { ApplicationResponse, ApplicationStatus } from '../../models/application.model';
 
 @Component({
   selector: 'app-application-list',
   standalone: true,
-  imports: [
-    CommonModule,
-    MatCardModule,
-    MatButtonModule,
-    MatIconModule,
-    MatProgressSpinnerModule
-  ],
+  imports: [CommonModule, RouterModule],
   templateUrl: './application-list.component.html',
   styleUrl: './application-list.component.css'
 })
 export class ApplicationListComponent implements OnInit, OnDestroy {
+
   applications: ApplicationResponse[] = [];
+  opportunityTitles = new Map<string, string>();
   isLoading = false;
   errorMessage = '';
 
@@ -33,6 +27,7 @@ export class ApplicationListComponent implements OnInit, OnDestroy {
 
   constructor(
     private candidatureService: CandidatureService,
+    private opportunityService: OpportunityService,
     private authService: AuthService,
     private router: Router
   ) {}
@@ -47,57 +42,67 @@ export class ApplicationListComponent implements OnInit, OnDestroy {
   }
 
   private loadApplications(): void {
-    const userData = this.authService.getUserData();
-    let user: any = null;
-    try {
-      user = userData?.user ? JSON.parse(userData.user) : null;
-    } catch {
-      user = null;
-    }
-
-    if (!user?.id) {
+    if (!this.authService.isAuthenticated()) {
       this.errorMessage = 'Vous devez être connecté pour voir vos candidatures.';
       return;
     }
 
     this.isLoading = true;
-    this.candidatureService.getVolunteerApplications(user.id.toString())
+    this.candidatureService.getVolunteerApplications()
       .pipe(takeUntil(this.destroy$))
       .subscribe({
         next: (apps) => {
           this.applications = apps;
-          this.isLoading = false;
+          this.enrichWithTitles(apps);
         },
-        error: (err) => {
-          this.errorMessage = err.message || 'Erreur lors du chargement des candidatures.';
-          this.isLoading = false;
-        }
+        error: (err) => { this.errorMessage = err.message; this.isLoading = false; }
       });
   }
 
-  getStatusLabel(status: string): string {
-    switch (status) {
-      case 'PENDING':  return 'En attente';
-      case 'ACCEPTED': return 'Acceptée';
-      case 'REJECTED': return 'Refusée';
-      default:         return status;
-    }
+  private enrichWithTitles(apps: ApplicationResponse[]): void {
+    const uniqueIds = [...new Set(apps.map(a => a.opportunityId))];
+    if (uniqueIds.length === 0) { this.isLoading = false; return; }
+
+    const requests = uniqueIds.map(id =>
+      this.opportunityService.getOpportunityById(id).pipe(catchError(() => of(null)))
+    );
+
+    forkJoin(requests)
+      .pipe(takeUntil(this.destroy$))
+      .subscribe(results => {
+        uniqueIds.forEach((id, i) => {
+          const opp = results[i] as any;
+          if (opp?.title) this.opportunityTitles.set(id, opp.title);
+        });
+        this.isLoading = false;
+      });
   }
 
-  getStatusIcon(status: string): string {
-    switch (status) {
-      case 'PENDING':  return 'schedule';
-      case 'ACCEPTED': return 'check_circle';
-      case 'REJECTED': return 'cancel';
-      default:         return 'help_outline';
-    }
+  getTitle(opportunityId: string): string {
+    return this.opportunityTitles.get(opportunityId) ?? `Opportunité #${opportunityId.slice(0, 8)}`;
   }
 
-  viewDetail(application: ApplicationResponse): void {
-    this.router.navigate(['/applications', application.id], { state: { application } });
+  statusLabel(status: ApplicationStatus): string {
+    const labels: Record<ApplicationStatus, string> = {
+      PENDING: 'En attente', VIEW: 'Consultée', ACCEPTED: 'Acceptée',
+      REJECTED: 'Rejetée', CLOSED: 'Fermée'
+    };
+    return labels[status] ?? status;
   }
 
-  goToOpportunities(): void {
-    this.router.navigate(['/volunteering/opportunities']);
+  statusClass(status: ApplicationStatus): string {
+    const classes: Record<ApplicationStatus, string> = {
+      PENDING: 'bg-amber-50 text-amber-700 border-amber-200',
+      VIEW: 'bg-sky-50 text-sky-700 border-sky-200',
+      ACCEPTED: 'bg-green-50 text-green-700 border-green-200',
+      REJECTED: 'bg-red-50 text-red-700 border-red-200',
+      CLOSED: 'bg-slate-50 text-slate-500 border-slate-200'
+    };
+    return classes[status] ?? 'bg-slate-50 text-slate-500 border-slate-200';
+  }
+
+  /** La carte ouvre l'offre concernée — c'est là que se trouve l'action utile. */
+  viewDetail(app: ApplicationResponse): void {
+    this.router.navigate(['/volunteering/opportunities', app.opportunityId]);
   }
 }

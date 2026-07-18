@@ -1,86 +1,79 @@
 import { Injectable } from '@angular/core';
-import { HttpClient, HttpHeaders, HttpErrorResponse } from '@angular/common/http';
+import { HttpClient, HttpErrorResponse } from '@angular/common/http';
 import { Observable, throwError } from 'rxjs';
 import { catchError } from 'rxjs/operators';
 import { environment } from '../../../environments/environment';
 import { ApplicationRequest, ApplicationResponse } from '../../models/application.model';
 
+export interface PublicParticipation {
+  opportunityId: string;
+  appliedAt: string;
+  updatedAt?: string;
+}
+
 @Injectable({
   providedIn: 'root'
 })
 export class CandidatureService {
-  private readonly apiUrl = environment.apiUrl + '/api/applications';
+  private readonly apiUrl = environment.apiApplicationUrl + '/api/applications';
 
   constructor(private http: HttpClient) {}
 
   /**
-   * Postuler à une opportunité
+   * Postuler à une opportunité.
+   * The auth_token cookie is sent automatically by the browser (withCredentials interceptor).
    */
-  applyToOpportunity(opportunityId: string, volunteeringId: string): Observable<ApplicationResponse> {
-    const token = this.getAuthToken();
-    
-    if (!token) {
-      return throwError(() => new Error('Token d\'authentification manquant'));
-    }
-
-    const headers = new HttpHeaders({
-      'Content-Type': 'application/json',
-      'Authorization': `Bearer ${token}`
-    });
-
+  applyToOpportunity(opportunityId: string, volunteeringId: string, motivationText?: string): Observable<ApplicationResponse> {
     const applicationData: ApplicationRequest = {
       volunteeringId,
       opportunityId,
+      motivationText,
       status: 'PENDING'
     };
 
-    return this.http.post<ApplicationResponse>(this.apiUrl, applicationData, { headers })
-      .pipe(
-        catchError(this.handleError)
-      );
+    return this.http.post<ApplicationResponse>(this.apiUrl, applicationData)
+      .pipe(catchError(this.handleError));
   }
 
   /**
-   * Récupérer les candidatures d'un volontaire
+   * Récupérer les candidatures du volontaire authentifié.
+   * Uses the /my endpoint which derives the user from the JWT cookie.
    */
-  getVolunteerApplications(volunteeringId: string): Observable<ApplicationResponse[]> {
-    const token = this.getAuthToken();
-    
-    if (!token) {
-      return throwError(() => new Error('Token d\'authentification manquant'));
-    }
-
-    const headers = new HttpHeaders({
-      'Authorization': `Bearer ${token}`
-    });
-
-    return this.http.get<ApplicationResponse[]>(`${this.apiUrl}/${volunteeringId}`, { headers })
-      .pipe(
-        catchError(this.handleError)
-      );
+  getVolunteerApplications(): Observable<ApplicationResponse[]> {
+    return this.http.get<ApplicationResponse[]>(`${this.apiUrl}/my`)
+      .pipe(catchError(this.handleError));
   }
 
   /**
-   * Récupérer le token d'authentification depuis localStorage
+   * Historique public des participations d'un volontaire (candidatures acceptées).
    */
-  private getAuthToken(): string | null {
-    if (typeof window !== 'undefined') {
-      return localStorage.getItem('authToken');
-    }
-    return null;
+  getParticipations(volunteerId: string | number): Observable<PublicParticipation[]> {
+    return this.http.get<PublicParticipation[]>(`${this.apiUrl}/volunteer/${volunteerId}/participations`)
+      .pipe(catchError(this.handleError));
   }
 
   /**
-   * Gestion centralisée des erreurs HTTP
+   * Récupérer les candidatures pour une opportunité donnée.
    */
+  getOpportunityApplications(opportunityId: string): Observable<ApplicationResponse[]> {
+    return this.http.get<ApplicationResponse[]>(`${this.apiUrl}/opportunity/${opportunityId}`)
+      .pipe(catchError(this.handleError));
+  }
+
+  /**
+   * Mettre à jour le statut d'une candidature (ACCEPTED / REJECTED / VIEW).
+   */
+  patchStatus(applicationId: number, status: string): Observable<ApplicationResponse> {
+    return this.http.patch<ApplicationResponse>(`${this.apiUrl}/${applicationId}/status`, { status })
+      .pipe(catchError(this.handleError));
+  }
+
   private handleError(error: HttpErrorResponse): Observable<never> {
     let errorMessage = 'Une erreur est survenue lors de la candidature';
-    
+
     if (error.error instanceof ErrorEvent) {
-      // Erreur côté client
       errorMessage = error.error.message;
     } else {
-      // Erreur côté serveur
       switch (error.status) {
         case 400:
           errorMessage = error.error?.message || 'Données de candidature invalides';
@@ -107,7 +100,7 @@ export class CandidatureService {
           errorMessage = `Erreur ${error.status}: ${error.statusText}`;
       }
     }
-    
+
     return throwError(() => new Error(errorMessage));
   }
 }

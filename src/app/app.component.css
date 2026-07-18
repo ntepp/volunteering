@@ -1,23 +1,3 @@
-/* Layout principal de l'application avec Flexbox */
-:host {
-  display: flex;
-  flex-direction: column;
-  min-height: 100vh;
-}
-
-/* Le contenu principal prend tout l'espace disponible */
-router-outlet {
-  flex: 1;
-  display: flex;
-  flex-direction: column;
-}
-
-/* S'assurer que les composants enfants utilisent aussi Flexbox */
-router-outlet > * {
-  flex: 1;
-  display: flex;
-  flex-direction: column;
-}
-
-
-
+/* Le layout global (header / contenu / footer) est défini dans styles.css :
+   les composants routés étant insérés dynamiquement, les sélecteurs scopés
+   (:host > *) ne peuvent pas les cibler avec l'encapsulation émulée. */

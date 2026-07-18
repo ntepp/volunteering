@@ -1,69 +1,130 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, OnDestroy } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { MatPaginatorModule, PageEvent } from '@angular/material/paginator';
-import { MatTableModule } from '@angular/material/table';
-import { OpportunityPagination } from '../../models/opportunity-pagination.model';
-import { OpportunityService } from '../services/opportunity.service';
-import { Opportunity } from '../../models/opportunity.model';
-import { MatIcon } from '@angular/material/icon';
-import { MatDialog } from '@angular/material/dialog';
-import { ViewOpportunityDialogComponent } from './view-opportunity-dialog/view-opportunity-dialog.component';
+import { Router, RouterModule } from '@angular/router';
+import { Subject, takeUntil } from 'rxjs';
 
+import { OpportunityService } from '../services/opportunity.service';
+import { AuthService } from '../../auth/services/auth.service';
+import { Opportunity } from '../../models/opportunity.model';
 
 @Component({
   selector: 'app-opportunity-my',
   standalone: true,
-  imports: [CommonModule, MatPaginatorModule, MatTableModule, MatIcon],
+  imports: [CommonModule, RouterModule],
   templateUrl: './opportunity-my.component.html',
   styleUrl: './opportunity-my.component.css'
 })
-export class OpportunityMyComponent implements OnInit {
-  displayedColumns: string[] = ['title', 'location', 'startDate', 'endDate', 'actions'];
-  pageSizeOptions: number[] = [5, 10, 20];
-  opportunityPagination: OpportunityPagination = {
-    currentPage: 0,
-    itemsPerPage: 5,
-    totalItems: 20,
-    totalPages: 0
-  }
-  
-  dataSource: Opportunity[] = [
-  ];
-  
+export class OpportunityMyComponent implements OnInit, OnDestroy {
 
+  opportunities: Opportunity[] = [];
+  isLoading = false;
+  errorMessage = '';
+  deleteConfirmId: string | null = null;
+  isDeleting = false;
 
-  constructor(private opportunityService: OpportunityService, private dialog: MatDialog){
-    
-  }
+  currentPage = 0;
+  pageSize = 10;
+  totalItems = 0;
+
+  private destroy$ = new Subject<void>();
+
+  constructor(
+    private opportunityService: OpportunityService,
+    private authService: AuthService,
+    private router: Router
+  ) {}
 
   ngOnInit(): void {
-    this.fetchOpportunities(this.opportunityPagination.currentPage, this.opportunityPagination.itemsPerPage);
+    this.fetchOpportunities();
   }
 
-  handlePageEvent(event: PageEvent) {
-    this.fetchOpportunities(event.pageIndex, event.pageSize)
+  ngOnDestroy(): void {
+    this.destroy$.next();
+    this.destroy$.complete();
   }
 
- 
-
-  private fetchOpportunities(currentPage: number, itemsPerPage: number) {
-    this.opportunityService.getOpportunity(currentPage, itemsPerPage)
-    .subscribe(opportunityPaginated => {
-      this.opportunityPagination.opportunities = opportunityPaginated.opportunities;
-      this.opportunityPagination.currentPage = opportunityPaginated.currentPage;
-      this.opportunityPagination.itemsPerPage = opportunityPaginated.itemsPerPage;
-      this.opportunityPagination.totalItems = opportunityPaginated.totalItems;
-      this.opportunityPagination.totalPages = opportunityPaginated.totalPages;
-      this.dataSource = this.opportunityPagination.opportunities ?? []
-      
-    });
-    
+  private get orgId(): number | null {
+    const id = this.authService.getUserData()?.userId;
+    return id ? Number(id) : null;
   }
 
-  
-  onView(element: Opportunity): void {
-    this.dialog.open(ViewOpportunityDialogComponent, {
-      data: element, // Pass the opportunity details to the dialog
-    });
+  private fetchOpportunities(): void {
+    const orgId = this.orgId;
+    if (!orgId) {
+      this.errorMessage = 'Impossible de récupérer votre identifiant organisation.';
+      return;
+    }
+
+    this.isLoading = true;
+    this.errorMessage = '';
+
+    this.opportunityService.getOpportunitiesByOrgId(orgId, this.currentPage, this.pageSize)
+      .pipe(takeUntil(this.destroy$))
+      .subscribe({
+        next: (data) => {
+          this.opportunities = data.opportunities || [];
+          this.totalItems = data.totalItems || 0;
+          this.isLoading = false;
+        },
+        error: (err) => {
+          this.errorMessage = err.message || 'Erreur lors du chargement.';
+          this.isLoading = false;
+        }
+      });
+  }
+
+  onPageChange(page: number): void {
+    this.currentPage = page;
+    this.fetchOpportunities();
+  }
+
+  get totalPages(): number {
+    return Math.ceil(this.totalItems / this.pageSize) || 0;
+  }
+
+  get pageStart(): number {
+    return this.currentPage * this.pageSize + 1;
+  }
+
+  get pageEnd(): number {
+    return Math.min((this.currentPage + 1) * this.pageSize, this.totalItems);
+  }
+
+  onEdit(id: string): void {
+    this.router.navigate(['/volunteering/opportunities', id, 'edit']);
+  }
+
+  onView(id: string): void {
+    this.router.navigate(['/volunteering/opportunities', id]);
+  }
+
+  onApplications(id: string): void {
+    this.router.navigate(['/volunteering/opportunities', id, 'applications']);
+  }
+
+  confirmDelete(id: string): void {
+    this.deleteConfirmId = id;
+  }
+
+  cancelDelete(): void {
+    this.deleteConfirmId = null;
+  }
+
+  onDelete(id: string): void {
+    this.isDeleting = true;
+    this.opportunityService.deleteOpportunity(id)
+      .pipe(takeUntil(this.destroy$))
+      .subscribe({
+        next: () => {
+          this.deleteConfirmId = null;
+          this.isDeleting = false;
+          this.fetchOpportunities();
+        },
+        error: (err) => {
+          this.errorMessage = err.message || 'Erreur lors de la suppression.';
+          this.deleteConfirmId = null;
+          this.isDeleting = false;
+        }
+      });
   }
 }

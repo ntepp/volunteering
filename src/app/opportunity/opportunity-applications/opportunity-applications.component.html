@@ -1,0 +1,224 @@
+<div class="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+
+  <!-- Header -->
+  <div class="flex items-center gap-3 mb-6">
+    <button (click)="onBack()" type="button"
+            class="p-1.5 rounded-lg text-slate-500 hover:bg-slate-100 transition-colors">
+      <span class="material-icons text-xl">arrow_back</span>
+    </button>
+    <div>
+      <h1 class="text-2xl font-bold text-slate-800">Candidatures reçues</h1>
+      <p *ngIf="opportunityTitle" class="text-sm text-slate-500 mt-0.5">{{ opportunityTitle }}</p>
+    </div>
+  </div>
+
+  <!-- Chargement -->
+  <div *ngIf="isLoading" class="flex justify-center py-20">
+    <div class="w-10 h-10 border-4 border-sky-200 border-t-sky-600 rounded-full animate-spin"></div>
+  </div>
+
+  <!-- Erreur -->
+  <div *ngIf="!isLoading && errorMessage"
+       class="flex items-center gap-3 p-4 bg-red-50 border border-red-200 rounded-xl text-red-700 text-sm mb-6">
+    <span class="material-icons text-lg">error_outline</span>
+    {{ errorMessage }}
+  </div>
+
+  <!-- Vide -->
+  <div *ngIf="!isLoading && !errorMessage && applications.length === 0"
+       class="flex flex-col items-center justify-center py-24 text-slate-400 bg-white border border-sky-100 rounded-xl">
+    <span class="material-icons text-5xl mb-3">inbox</span>
+    <h3 class="text-base font-medium text-slate-600 mb-1">Aucune candidature reçue</h3>
+    <p class="text-sm text-center max-w-sm">Personne n'a encore postulé à cette opportunité.</p>
+  </div>
+
+  <!-- ═══ Tableau de bord des candidatures ═══ -->
+  <section *ngIf="!isLoading && !errorMessage && applications.length > 0" class="mb-6">
+
+    <!-- Tuiles de métriques -->
+    <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3 mb-4">
+
+      <!-- Total -->
+      <div class="bg-white border border-sky-100 rounded-xl p-4">
+        <div class="flex items-center gap-2 mb-2">
+          <span class="w-7 h-7 rounded-lg bg-sky-100 text-sky-600 flex items-center justify-center">
+            <span class="material-icons text-base">group</span>
+          </span>
+          <span class="text-xs font-medium text-slate-500">Candidatures</span>
+        </div>
+        <p class="text-2xl font-bold text-slate-800 leading-none">{{ totalCount }}</p>
+        <p class="text-xs text-slate-400 mt-1.5">dont {{ recentCount }} ces 7 derniers jours</p>
+      </div>
+
+      <!-- En attente -->
+      <div class="bg-white border border-sky-100 rounded-xl p-4">
+        <div class="flex items-center gap-2 mb-2">
+          <span class="w-7 h-7 rounded-lg bg-amber-100 text-amber-600 flex items-center justify-center">
+            <span class="material-icons text-base">hourglass_empty</span>
+          </span>
+          <span class="text-xs font-medium text-slate-500">En attente</span>
+        </div>
+        <p class="text-2xl font-bold text-slate-800 leading-none">{{ pendingCount }}</p>
+        <p class="text-xs text-slate-400 mt-1.5">{{ pendingCount > 0 ? 'à traiter' : 'tout est traité' }}</p>
+      </div>
+
+      <!-- Consultées -->
+      <div class="bg-white border border-sky-100 rounded-xl p-4">
+        <div class="flex items-center gap-2 mb-2">
+          <span class="w-7 h-7 rounded-lg bg-sky-100 text-sky-600 flex items-center justify-center">
+            <span class="material-icons text-base">visibility</span>
+          </span>
+          <span class="text-xs font-medium text-slate-500">Consultées</span>
+        </div>
+        <p class="text-2xl font-bold text-slate-800 leading-none">{{ countByStatus('VIEW') }}</p>
+        <p class="text-xs text-slate-400 mt-1.5">en cours d'examen</p>
+      </div>
+
+      <!-- Acceptées -->
+      <div class="bg-white border border-sky-100 rounded-xl p-4">
+        <div class="flex items-center gap-2 mb-2">
+          <span class="w-7 h-7 rounded-lg bg-green-100 text-green-600 flex items-center justify-center">
+            <span class="material-icons text-base">check_circle</span>
+          </span>
+          <span class="text-xs font-medium text-slate-500">Acceptées</span>
+        </div>
+        <p class="text-2xl font-bold text-slate-800 leading-none">{{ acceptedCount }}</p>
+        <p *ngIf="volunteersNeeded" class="text-xs text-slate-400 mt-1.5">sur {{ volunteersNeeded }} recherché{{ volunteersNeeded > 1 ? 's' : '' }}</p>
+        <p *ngIf="!volunteersNeeded" class="text-xs text-slate-400 mt-1.5">bénévoles retenus</p>
+      </div>
+
+      <!-- Refusées -->
+      <div class="bg-white border border-sky-100 rounded-xl p-4">
+        <div class="flex items-center gap-2 mb-2">
+          <span class="w-7 h-7 rounded-lg bg-red-100 text-red-500 flex items-center justify-center">
+            <span class="material-icons text-base">cancel</span>
+          </span>
+          <span class="text-xs font-medium text-slate-500">Refusées</span>
+        </div>
+        <p class="text-2xl font-bold text-slate-800 leading-none">{{ countByStatus('REJECTED') }}</p>
+        <p class="text-xs text-slate-400 mt-1.5">non retenues</p>
+      </div>
+    </div>
+
+    <!-- Répartition + progression -->
+    <div class="grid grid-cols-1 lg:grid-cols-2 gap-3">
+
+      <!-- Répartition par statut -->
+      <div class="bg-white border border-sky-100 rounded-xl p-4">
+        <p class="text-xs font-medium text-slate-500 mb-3">Répartition par statut</p>
+        <div class="flex h-3 rounded-full overflow-hidden gap-0.5 bg-slate-100" role="img"
+             [attr.aria-label]="'Répartition des ' + totalCount + ' candidatures par statut'">
+          <div *ngFor="let seg of statusSegments"
+               class="{{ seg.barClass }} first:rounded-l-full last:rounded-r-full"
+               [style.width.%]="seg.percent"
+               [title]="seg.label + ' : ' + seg.count"></div>
+        </div>
+        <div class="flex flex-wrap gap-x-4 gap-y-1.5 mt-3">
+          <span *ngFor="let seg of statusSegments" class="flex items-center gap-1.5 text-xs text-slate-600">
+            <span class="w-2.5 h-2.5 rounded-full {{ seg.dotClass }}"></span>
+            {{ seg.label }}
+            <span class="font-semibold text-slate-800">{{ seg.count }}</span>
+          </span>
+        </div>
+      </div>
+
+      <!-- Progression -->
+      <div class="bg-white border border-sky-100 rounded-xl p-4 flex flex-col justify-center gap-4">
+
+        <!-- Places pourvues (si l'offre précise un nombre de bénévoles) -->
+        <div *ngIf="volunteersNeeded">
+          <div class="flex items-center justify-between mb-1.5">
+            <p class="text-xs font-medium text-slate-500">Places pourvues</p>
+            <p class="text-xs text-slate-600"><span class="font-semibold text-slate-800">{{ acceptedCount }}</span> / {{ volunteersNeeded }}</p>
+          </div>
+          <div class="w-full h-2.5 bg-slate-100 rounded-full overflow-hidden">
+            <div class="h-full bg-green-500 rounded-full transition-all" [style.width.%]="filledPercent"></div>
+          </div>
+        </div>
+
+        <!-- Traitement des candidatures -->
+        <div>
+          <div class="flex items-center justify-between mb-1.5">
+            <p class="text-xs font-medium text-slate-500">Candidatures traitées</p>
+            <p class="text-xs text-slate-600"><span class="font-semibold text-slate-800">{{ processedPercent }}%</span></p>
+          </div>
+          <div class="w-full h-2.5 bg-slate-100 rounded-full overflow-hidden">
+            <div class="h-full bg-sky-500 rounded-full transition-all" [style.width.%]="processedPercent"></div>
+          </div>
+          <p class="text-xs text-slate-400 mt-1.5">{{ totalCount - pendingCount }} traitée{{ totalCount - pendingCount > 1 ? 's' : '' }} sur {{ totalCount }}</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Liste des candidatures -->
+  <div *ngIf="!isLoading && !errorMessage && applications.length > 0" class="space-y-4">
+
+    <div *ngFor="let app of applications"
+         class="bg-white border border-sky-100 rounded-xl shadow-sm p-5">
+
+      <div class="flex items-start justify-between gap-4">
+
+        <!-- Infos candidature -->
+        <div class="flex-1 min-w-0">
+          <div class="flex items-center gap-2.5 mb-2">
+            <span class="w-8 h-8 rounded-full overflow-hidden bg-sky-100 flex items-center justify-center text-sky-600 shrink-0">
+              <img *ngIf="volunteerImage(app)" [src]="volunteerImage(app)" alt=""
+                   class="w-full h-full object-cover">
+              <span *ngIf="!volunteerImage(app)" class="material-icons text-base">person</span>
+            </span>
+            <a *ngIf="volunteerUsername(app)"
+               [routerLink]="['/volunteer', volunteerUsername(app)]"
+               class="text-sky-600 hover:underline font-medium text-sm">{{ volunteerName(app) }}</a>
+            <span *ngIf="!volunteerUsername(app)"
+                  class="text-slate-600 font-medium text-sm">{{ volunteerName(app) }}</span>
+            <span class="px-2 py-0.5 text-xs font-medium border rounded-full {{ statusClass(app.status) }}">
+              {{ statusLabel(app.status) }}
+            </span>
+          </div>
+
+          <!-- Motivation -->
+          <div *ngIf="app.motivationText"
+               class="bg-slate-50 rounded-lg p-3 text-sm text-slate-600 border border-slate-100 mb-2">
+            <p class="text-xs font-medium text-slate-400 mb-1">Message de motivation</p>
+            {{ app.motivationText }}
+          </div>
+          <p *ngIf="!app.motivationText" class="text-xs text-slate-400 italic mb-2">Aucun message de motivation.</p>
+
+          <p class="text-xs text-slate-400">
+            Postulé le {{ app.appliedAt | date:'dd/MM/yyyy à HH:mm' }}
+          </p>
+        </div>
+
+        <!-- Actions -->
+        <div class="flex flex-col gap-2 shrink-0">
+          <button *ngIf="app.status !== 'VIEW' && app.status !== 'ACCEPTED' && app.status !== 'REJECTED'"
+                  (click)="patchStatus(app, 'VIEW')"
+                  [disabled]="updatingId === +app.id"
+                  class="flex items-center gap-1.5 px-3 py-1.5 border border-sky-200 text-sky-600 text-xs font-medium rounded-lg hover:bg-sky-50 transition-colors disabled:opacity-50">
+            <span class="material-icons text-sm">visibility</span>
+            Consulter
+          </button>
+
+          <button *ngIf="app.status !== 'ACCEPTED'"
+                  (click)="patchStatus(app, 'ACCEPTED')"
+                  [disabled]="updatingId === +app.id"
+                  class="flex items-center gap-1.5 px-3 py-1.5 bg-green-600 hover:bg-green-700 text-white text-xs font-medium rounded-lg transition-colors disabled:opacity-50">
+            <span class="material-icons text-sm">check</span>
+            Accepter
+          </button>
+
+          <button *ngIf="app.status !== 'REJECTED'"
+                  (click)="patchStatus(app, 'REJECTED')"
+                  [disabled]="updatingId === +app.id"
+                  class="flex items-center gap-1.5 px-3 py-1.5 border border-red-200 text-red-500 text-xs font-medium rounded-lg hover:bg-red-50 transition-colors disabled:opacity-50">
+            <span class="material-icons text-sm">close</span>
+            Rejeter
+          </button>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+</div>

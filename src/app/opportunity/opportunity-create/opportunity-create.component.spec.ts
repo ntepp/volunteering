@@ -16,10 +16,13 @@ import { MatNativeDateModule } from '@angular/material/core';
 import { MatCheckboxModule } from '@angular/material/checkbox';
 import { MatTooltipModule } from '@angular/material/tooltip';
 import { Router } from '@angular/router';
+import { provideHttpClient } from '@angular/common/http';
+import { provideHttpClientTesting } from '@angular/common/http/testing';
 import { of, throwError } from 'rxjs';
 
 import { OpportunityCreateComponent } from './opportunity-create.component';
 import { OpportunityService } from '../services/opportunity.service';
+import { AuthService } from '../../auth/services/auth.service';
 import { Category } from '../../models/category.model';
 
 describe('OpportunityCreateComponent', () => {
@@ -37,6 +40,8 @@ describe('OpportunityCreateComponent', () => {
   beforeEach(async () => {
     const opportunityServiceSpy = jasmine.createSpyObj('OpportunityService', ['getCategories', 'createOpportunity']);
     const routerSpy = jasmine.createSpyObj('Router', ['navigate']);
+    const authServiceSpy = jasmine.createSpyObj('AuthService', ['getUserData']);
+    authServiceSpy.getUserData.and.returnValue({ userId: '42', role: 'ORGANIZATION', user: 'test@example.com' });
 
     await TestBed.configureTestingModule({
       imports: [
@@ -59,8 +64,11 @@ describe('OpportunityCreateComponent', () => {
         MatTooltipModule
       ],
       providers: [
+        provideHttpClient(),
+        provideHttpClientTesting(),
         { provide: OpportunityService, useValue: opportunityServiceSpy },
-        { provide: Router, useValue: routerSpy }
+        { provide: Router, useValue: routerSpy },
+        { provide: AuthService, useValue: authServiceSpy }
       ]
     }).compileComponents();
 
@@ -69,6 +77,8 @@ describe('OpportunityCreateComponent', () => {
   });
 
   beforeEach(() => {
+    mockOpportunityService = TestBed.inject(OpportunityService) as jasmine.SpyObj<OpportunityService>;
+    mockOpportunityService.getCategories.and.returnValue(of(mockCategories));
     fixture = TestBed.createComponent(OpportunityCreateComponent);
     component = fixture.componentInstance;
   });
@@ -79,7 +89,7 @@ describe('OpportunityCreateComponent', () => {
 
   it('should initialize form with empty values', () => {
     component.ngOnInit();
-    
+
     expect(component.opportunityForm).toBeDefined();
     expect(component.opportunityForm.get('title')?.value).toBe('');
     expect(component.opportunityForm.get('description')?.value).toBe('');
@@ -88,7 +98,7 @@ describe('OpportunityCreateComponent', () => {
     expect(component.opportunityForm.get('startDate')?.value).toBe('');
     expect(component.opportunityForm.get('endDate')?.value).toBe('');
     expect(component.opportunityForm.get('requirements')?.value).toBe('');
-    expect(component.opportunityForm.get('categories')?.value).toEqual([]);
+    expect(component.opportunityForm.get('categoryNames')?.value).toEqual([]);
   });
 
   it('should load categories on init', () => {
@@ -113,29 +123,29 @@ describe('OpportunityCreateComponent', () => {
 
   it('should add skill to form array', () => {
     component.ngOnInit();
-    const initialLength = component.skillsRequiredArray.length;
+    const initialLength = component.skillsArray.length;
     
     component.addSkill();
     
-    expect(component.skillsRequiredArray.length).toBe(initialLength + 1);
+    expect(component.skillsArray.length).toBe(initialLength + 1);
   });
 
   it('should remove skill from form array', () => {
     component.ngOnInit();
     component.addSkill();
     component.addSkill();
-    const initialLength = component.skillsRequiredArray.length;
+    const initialLength = component.skillsArray.length;
     
     component.removeSkill(0);
     
-    expect(component.skillsRequiredArray.length).toBe(initialLength - 1);
+    expect(component.skillsArray.length).toBe(initialLength - 1);
   });
 
   it('should validate required fields', () => {
     component.ngOnInit();
-    
+
     expect(component.opportunityForm.valid).toBeFalse();
-    
+
     component.opportunityForm.patchValue({
       title: 'Test Opportunity',
       description: 'This is a test opportunity description with enough characters',
@@ -143,41 +153,41 @@ describe('OpportunityCreateComponent', () => {
       town: 'Test Town',
       startDate: '2024-01-01',
       endDate: '2024-01-31',
-      categories: [mockCategories[0]]
+      categoryNames: [mockCategories[0].name]
     });
-    
+
     expect(component.opportunityForm.valid).toBeTrue();
   });
 
   it('should validate date range', () => {
     component.ngOnInit();
-    
+
     component.opportunityForm.patchValue({
       startDate: '2024-01-31',
       endDate: '2024-01-01'
     });
-    
-    expect(component.opportunityForm.get('endDate')?.hasError('invalidDateRange')).toBeTrue();
+
+    expect(component.opportunityForm.hasError('dateRange')).toBeTrue();
   });
 
   it('should navigate back on cancel', () => {
     component.onCancel();
-    
-    expect(mockRouter.navigate).toHaveBeenCalledWith(['/opportunities']);
+
+    expect(mockRouter.navigate).toHaveBeenCalledWith(['/volunteering/opportunities/my']);
   });
 
   it('should show error message for invalid form submission', () => {
     component.ngOnInit();
-    
+
     component.onSubmit();
-    
-    expect(component.errorMessage).toBe('Veuillez corriger les erreurs dans le formulaire.');
+
+    expect(component.errorMessage).toBe('Veuillez corriger les erreurs avant de soumettre.');
   });
 
   it('should handle successful form submission', () => {
     component.ngOnInit();
     mockOpportunityService.createOpportunity.and.returnValue(of({}));
-    
+
     component.opportunityForm.patchValue({
       title: 'Test Opportunity',
       description: 'This is a test opportunity description with enough characters',
@@ -185,11 +195,11 @@ describe('OpportunityCreateComponent', () => {
       town: 'Test Town',
       startDate: '2024-01-01',
       endDate: '2024-01-31',
-      categories: [mockCategories[0]]
+      categoryNames: [mockCategories[0].name]
     });
-    
+
     component.onSubmit();
-    
+
     expect(mockOpportunityService.createOpportunity).toHaveBeenCalled();
     expect(component.isSubmitting).toBeFalse();
   });
@@ -198,7 +208,7 @@ describe('OpportunityCreateComponent', () => {
     component.ngOnInit();
     const errorMessage = 'Erreur de création';
     mockOpportunityService.createOpportunity.and.returnValue(throwError(() => new Error(errorMessage)));
-    
+
     component.opportunityForm.patchValue({
       title: 'Test Opportunity',
       description: 'This is a test opportunity description with enough characters',
@@ -206,11 +216,11 @@ describe('OpportunityCreateComponent', () => {
       town: 'Test Town',
       startDate: '2024-01-01',
       endDate: '2024-01-31',
-      categories: [mockCategories[0]]
+      categoryNames: [mockCategories[0].name]
     });
-    
+
     component.onSubmit();
-    
+
     expect(component.errorMessage).toBe(errorMessage);
     expect(component.isSubmitting).toBeFalse();
   });

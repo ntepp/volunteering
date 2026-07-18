@@ -3,12 +3,6 @@ import { FormBuilder, FormGroup, Validators, ReactiveFormsModule } from '@angula
 import { CommonModule } from '@angular/common';
 import { Router, RouterModule } from '@angular/router';
 import { MatSnackBar } from '@angular/material/snack-bar';
-import { MatCardModule } from '@angular/material/card';
-import { MatFormFieldModule } from '@angular/material/form-field';
-import { MatInputModule } from '@angular/material/input';
-import { MatButtonModule } from '@angular/material/button';
-import { MatIconModule } from '@angular/material/icon';
-import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { Subject, takeUntil } from 'rxjs';
 
 import { AuthService } from '../services/auth.service';
@@ -19,13 +13,7 @@ import { AuthService } from '../services/auth.service';
   imports: [
     CommonModule,
     ReactiveFormsModule,
-    RouterModule,
-    MatCardModule,
-    MatFormFieldModule,
-    MatInputModule,
-    MatButtonModule,
-    MatIconModule,
-    MatProgressSpinnerModule
+    RouterModule
   ],
   templateUrl: './login.component.html',
   styleUrls: ['./login.component.css']
@@ -85,9 +73,8 @@ export class LoginComponent implements OnInit, OnDestroy {
         .subscribe({
           next: (response) => {
             this.isSubmitting = false;
-            
-            // Sauvegarder le token et les données utilisateur
-            if (response.token && response.user) {
+            // JWT is set as httpOnly cookie by server; store only user/role in localStorage
+            if (response.user && response.role) {
               this.authService.saveUserData(response);
               this.showSuccessMessage();
               this.redirectBasedOnRole(response);
@@ -169,11 +156,6 @@ export class LoginComponent implements OnInit, OnDestroy {
   }
 
   onForgotPassword(): void {
-    // TODO: Implémenter la récupération de mot de passe
-    this.snackBar.open('Fonctionnalité à venir', 'Fermer', {
-      duration: 3000,
-      horizontalPosition: 'center',
-      verticalPosition: 'top'
-    });
+    this.router.navigate(['/forgot-password']);
   }
 }

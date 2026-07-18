@@ -1,91 +1,119 @@
-<div class="login-container">
-  <mat-card class="login-card">
-    <mat-card-header class="login-card-header">
-      <mat-card-title class="login-title">Connexion</mat-card-title>
-      <mat-card-subtitle class="login-subtitle">Accédez à votre espace personnel</mat-card-subtitle>
-    </mat-card-header>
-    
-    <mat-card-content>
-      <form [formGroup]="loginForm" (ngSubmit)="onSubmit()" class="login-form">
-        
-        <!-- Email Field -->
-        <mat-form-field appearance="outline" class="full-width">
-          <mat-label>Email *</mat-label>
-          <input matInput 
-                 formControlName="email" 
-                 type="email" 
-                 placeholder="Ex: email@example.com"
-                 autocomplete="email">
-          <mat-icon matSuffix>email</mat-icon>
-          <mat-error *ngIf="hasError('email', 'required')">
-            {{ getErrorMessage('email') }}
-          </mat-error>
-          <mat-error *ngIf="hasError('email', 'email')">
-            {{ getErrorMessage('email') }}
-          </mat-error>
-        </mat-form-field>
+<div class="min-h-[calc(100vh-4rem)] flex">
 
-        <!-- Password Field -->
-        <mat-form-field appearance="outline" class="full-width">
-          <mat-label>Mot de passe *</mat-label>
-          <input matInput 
-                 formControlName="password" 
-                 type="password" 
-                 placeholder="Votre mot de passe"
-                 autocomplete="current-password">
-          <mat-icon matSuffix>lock</mat-icon>
-          <mat-error *ngIf="hasError('password', 'required')">
-            {{ getErrorMessage('password') }}
-          </mat-error>
-          <mat-error *ngIf="hasError('password', 'minlength')">
-            {{ getErrorMessage('password') }}
-          </mat-error>
-        </mat-form-field>
+  <!-- Panneau marque (desktop) -->
+  <aside class="hidden lg:flex lg:w-1/2 relative overflow-hidden bg-gradient-to-br from-sky-700 via-sky-600 to-sky-500 flex-col justify-center px-14">
+    <div class="absolute -top-24 -right-24 w-96 h-96 rounded-full bg-sky-400/30 blur-3xl pointer-events-none"></div>
+    <div class="absolute -bottom-32 -left-16 w-80 h-80 rounded-full bg-warm-500/20 blur-3xl pointer-events-none"></div>
 
-        <!-- Forgot Password Link -->
-        <div class="forgot-password-container">
-          <button mat-button 
-                  type="button" 
-                  (click)="onForgotPassword()"
-                  class="forgot-password-link">
-            <mat-icon>help_outline</mat-icon>
+    <div class="relative">
+      <div class="flex items-center gap-2 text-white mb-8">
+        <span class="material-icons text-4xl">volunteer_activism</span>
+        <span class="text-2xl font-bold tracking-tight">Je Suis Utile</span>
+      </div>
+      <h1 class="text-4xl font-bold text-white leading-tight mb-4">
+        Content de vous<br>revoir&nbsp;!
+      </h1>
+      <p class="text-sky-100 text-lg leading-relaxed mb-8 max-w-md">
+        Retrouvez vos candidatures, vos notifications et les missions qui vous correspondent.
+      </p>
+      <ul class="space-y-3 text-sky-100 text-sm">
+        <li class="flex items-center gap-3">
+          <span class="material-icons text-warm-500 text-xl">star</span>
+          Un feed personnalisé selon vos catégories préférées
+        </li>
+        <li class="flex items-center gap-3">
+          <span class="material-icons text-warm-500 text-xl">notifications</span>
+          Le suivi de vos candidatures en temps réel
+        </li>
+        <li class="flex items-center gap-3">
+          <span class="material-icons text-warm-500 text-xl">groups</span>
+          Des organisations qui ont besoin de vous
+        </li>
+      </ul>
+    </div>
+  </aside>
+
+  <!-- Formulaire -->
+  <main class="flex-1 flex items-center justify-center px-4 sm:px-8 py-10 bg-brand-bg">
+    <div class="w-full max-w-md">
+
+      <div class="mb-8">
+        <h2 class="text-2xl font-bold text-slate-800">Connexion</h2>
+        <p class="text-sm text-slate-500 mt-1">Accédez à votre espace personnel</p>
+      </div>
+
+      <form [formGroup]="loginForm" (ngSubmit)="onSubmit()" novalidate
+            class="bg-white border border-sky-100 rounded-2xl shadow-sm p-6 sm:p-8">
+
+        <!-- Email -->
+        <div class="mb-4">
+          <label class="block text-sm font-medium text-slate-600 mb-1">
+            Email <span class="text-red-500">*</span>
+          </label>
+          <div class="relative">
+            <span class="material-icons absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 text-lg pointer-events-none">email</span>
+            <input formControlName="email" type="email" autocomplete="email"
+                   placeholder="Ex : marie@example.com"
+                   class="w-full pl-10 pr-3 py-2.5 border rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-sky-400 transition"
+                   [ngClass]="hasError('email','required') || hasError('email','email') ? 'border-red-400' : 'border-slate-200'">
+          </div>
+          <p *ngIf="hasError('email','required') || hasError('email','email')"
+             class="text-xs text-red-500 mt-1">{{ getErrorMessage('email') }}</p>
+        </div>
+
+        <!-- Mot de passe -->
+        <div class="mb-2">
+          <label class="block text-sm font-medium text-slate-600 mb-1">
+            Mot de passe <span class="text-red-500">*</span>
+          </label>
+          <div class="relative">
+            <span class="material-icons absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 text-lg pointer-events-none">lock</span>
+            <input formControlName="password" type="password" autocomplete="current-password"
+                   placeholder="Votre mot de passe"
+                   class="w-full pl-10 pr-3 py-2.5 border rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-sky-400 transition"
+                   [ngClass]="hasError('password','required') || hasError('password','minlength') ? 'border-red-400' : 'border-slate-200'">
+          </div>
+          <p *ngIf="hasError('password','required') || hasError('password','minlength')"
+             class="text-xs text-red-500 mt-1">{{ getErrorMessage('password') }}</p>
+        </div>
+
+        <!-- Mot de passe oublié -->
+        <div class="flex justify-end mb-5">
+          <button type="button" (click)="onForgotPassword()"
+                  class="text-xs text-sky-600 hover:text-sky-700 hover:underline transition-colors">
             Mot de passe oublié ?
           </button>
         </div>
 
-        <!-- Error Message -->
-        <div *ngIf="errorMessage" class="error-message">
-          <mat-icon class="error-icon">error</mat-icon>
+        <!-- Erreur -->
+        <div *ngIf="errorMessage"
+             class="flex items-center gap-2 p-3 bg-red-50 border border-red-200 rounded-lg text-red-700 text-sm mb-5">
+          <span class="material-icons text-base">error_outline</span>
           {{ errorMessage }}
         </div>
 
-        <!-- Submit Button -->
-        <div class="submit-container">
-          <button mat-raised-button 
-                  color="primary" 
-                  type="submit"
-                  class="login-button"
-                  [disabled]="isSubmitting || loginForm.invalid">
-            <mat-spinner diameter="20" *ngIf="isSubmitting" class="button-spinner"></mat-spinner>
-            <mat-icon *ngIf="!isSubmitting" class="button-icon">login</mat-icon>
-            {{ isSubmitting ? 'Connexion en cours...' : 'Se connecter' }}
-          </button>
-        </div>
-      </form>
-    </mat-card-content>
-    
-    <mat-card-footer class="login-footer">
-      <div class="register-link-container">
-        <p>Pas encore de compte ?</p>
-        <button mat-button 
-                color="primary" 
-                routerLink="/register/volonteer"
-                class="register-link">
-          <mat-icon>person_add</mat-icon>
-          Créer un compte
+        <!-- Soumettre -->
+        <button type="submit"
+                [disabled]="isSubmitting || loginForm.invalid"
+                class="w-full flex items-center justify-center gap-2 px-5 py-2.5 bg-sky-600 hover:bg-sky-700 text-white text-sm font-semibold rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed">
+          <div *ngIf="isSubmitting" class="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
+          <span *ngIf="!isSubmitting" class="material-icons text-base">login</span>
+          {{ isSubmitting ? 'Connexion en cours...' : 'Se connecter' }}
         </button>
-      </div>
-    </mat-card-footer>
-  </mat-card>
-</div>
+      </form>
 
+      <!-- Liens secondaires -->
+      <div class="mt-6 text-center space-y-2">
+        <p class="text-sm text-slate-500">
+          Pas encore de compte ?
+          <a routerLink="/register/volonteer" class="text-sky-600 font-medium hover:underline">Créer un compte volontaire</a>
+        </p>
+        <p class="text-sm text-slate-500">
+          Vous êtes une organisation ?
+          <a routerLink="/login/organisation" class="text-sky-600 font-medium hover:underline">Espace organisation</a>
+        </p>
+      </div>
+
+    </div>
+  </main>
+</div>

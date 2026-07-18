@@ -1,0 +1,16 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64">
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#0369a1"/>
+      <stop offset="1" stop-color="#0ea5e9"/>
+    </linearGradient>
+  </defs>
+  <!-- Tuile arrondie bleu océan -->
+  <rect width="64" height="64" rx="14" fill="url(#bg)"/>
+  <!-- Cœur orange (accent chaleureux de la marque) -->
+  <path d="M32 36 C 27.5 30, 19 29.5, 19 21.5 C 19 16.2, 23.2 13, 27 13 C 29.3 13, 31 14.2, 32 15.9 C 33 14.2, 34.7 13, 37 13 C 40.8 13, 45 16.2, 45 21.5 C 45 29.5, 36.5 30, 32 36 Z"
+        fill="#f97316"/>
+  <!-- Main ouverte qui porte le cœur -->
+  <path d="M15 41 C 21 51.5, 43 51.5, 49 41 L 49 45.5 C 43 55, 21 55, 15 45.5 Z"
+        fill="#ffffff"/>
+</svg>

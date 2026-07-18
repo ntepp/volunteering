@@ -1,67 +1,87 @@
-<div class="application-list-container">
+<div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
 
-  <div class="page-header">
-    <mat-icon class="header-icon">assignment</mat-icon>
-    <h1 class="page-title">Mes candidatures</h1>
+  <!-- Header -->
+  <div class="mb-6">
+    <h1 class="text-2xl font-bold text-slate-800 flex items-center gap-2">
+      <span class="material-icons text-sky-600">assignment</span>
+      Mes candidatures
+    </h1>
+    <p class="text-sm text-slate-500 mt-0.5">Suivez l'état de vos demandes de bénévolat</p>
   </div>
 
   <!-- Chargement -->
-  <div class="loading-container" *ngIf="isLoading">
-    <mat-spinner diameter="48"></mat-spinner>
-    <p>Chargement de vos candidatures...</p>
+  <div *ngIf="isLoading" class="flex justify-center py-20">
+    <div class="w-10 h-10 border-4 border-sky-200 border-t-sky-600 rounded-full animate-spin"></div>
   </div>
 
   <!-- Erreur -->
-  <div class="error-container" *ngIf="!isLoading && errorMessage">
-    <mat-icon class="error-icon">error_outline</mat-icon>
-    <p>{{ errorMessage }}</p>
+  <div *ngIf="!isLoading && errorMessage"
+       class="flex items-center gap-3 p-4 bg-red-50 border border-red-200 rounded-xl text-red-700 text-sm mb-6">
+    <span class="material-icons text-lg">error_outline</span>
+    {{ errorMessage }}
   </div>
 
-  <!-- Liste des candidatures -->
-  <div class="applications-grid" *ngIf="!isLoading && !errorMessage && applications.length > 0">
-    <mat-card class="application-card" *ngFor="let app of applications" (click)="viewDetail(app)">
-      <mat-card-content>
-        <div class="card-top">
-          <div class="opportunity-ref">
-            <mat-icon class="ref-icon">work_outline</mat-icon>
-            <span>Opportunité <strong>#{{ app.opportunityId }}</strong></span>
-          </div>
-          <span class="status-badge {{ getStatusIcon(app.status) }}-badge" [class]="'badge-' + app.status.toLowerCase()">
-            <mat-icon class="badge-icon">{{ getStatusIcon(app.status) }}</mat-icon>
-            {{ getStatusLabel(app.status) }}
-          </span>
-        </div>
-
-        <div class="card-dates">
-          <div class="date-item">
-            <mat-icon>event_available</mat-icon>
-            <span>Postulé le {{ app.appliedAt | date:'dd/MM/yyyy' }}</span>
-          </div>
-          <div class="date-item" *ngIf="app.updatedAt">
-            <mat-icon>update</mat-icon>
-            <span>Mis à jour le {{ app.updatedAt | date:'dd/MM/yyyy' }}</span>
-          </div>
-        </div>
-      </mat-card-content>
-
-      <mat-card-actions align="end">
-        <button mat-button color="primary" (click)="viewDetail(app); $event.stopPropagation()">
-          <mat-icon>arrow_forward</mat-icon>
-          Voir le détail
-        </button>
-      </mat-card-actions>
-    </mat-card>
-  </div>
-
-  <!-- État vide -->
-  <div class="empty-state" *ngIf="!isLoading && !errorMessage && applications.length === 0">
-    <mat-icon class="empty-icon">inbox</mat-icon>
-    <h2 class="empty-title">Aucune candidature</h2>
-    <p class="empty-subtitle">Vous n'avez pas encore postulé à une opportunité.</p>
-    <button mat-raised-button color="primary" (click)="goToOpportunities()">
-      <mat-icon>search</mat-icon>
+  <!-- Vide -->
+  <div *ngIf="!isLoading && !errorMessage && applications.length === 0"
+       class="flex flex-col items-center justify-center py-24 text-slate-400 bg-white border border-sky-100 rounded-xl">
+    <span class="material-icons text-5xl mb-3">inbox</span>
+    <h3 class="text-base font-medium text-slate-600 mb-1">Aucune candidature</h3>
+    <p class="text-sm text-center max-w-sm">Vous n'avez pas encore postulé à une opportunité de bénévolat.</p>
+    <a routerLink="/volunteering/opportunities"
+       class="mt-5 flex items-center gap-1.5 px-4 py-2 bg-sky-600 text-white text-sm font-medium rounded-lg hover:bg-sky-700 transition-colors">
+      <span class="material-icons text-base">search</span>
       Trouver une opportunité
-    </button>
+    </a>
+  </div>
+
+  <!-- Liste -->
+  <div *ngIf="!isLoading && !errorMessage && applications.length > 0" class="space-y-3">
+
+    <p class="text-sm text-slate-500 mb-2">
+      {{ applications.length }} candidature{{ applications.length > 1 ? 's' : '' }}
+    </p>
+
+    <div *ngFor="let app of applications"
+         class="bg-white border border-sky-100 rounded-xl shadow-sm p-5 hover:border-sky-300 transition-colors cursor-pointer"
+         (click)="viewDetail(app)">
+
+      <div class="flex items-start justify-between gap-4">
+        <div class="flex-1 min-w-0">
+          <!-- Titre opportunité -->
+          <div class="flex items-center gap-2 mb-1.5">
+            <span class="material-icons text-sky-500 text-base">work_outline</span>
+            <h3 class="text-sm font-semibold text-slate-800 truncate">{{ getTitle(app.opportunityId) }}</h3>
+          </div>
+
+          <!-- Dates -->
+          <div class="flex flex-wrap items-center gap-3 text-xs text-slate-400">
+            <span class="flex items-center gap-1">
+              <span class="material-icons text-xs">event_available</span>
+              Postulé le {{ app.appliedAt | date:'dd/MM/yyyy' }}
+            </span>
+            <span *ngIf="app.updatedAt" class="flex items-center gap-1">
+              <span class="material-icons text-xs">update</span>
+              Mis à jour le {{ app.updatedAt | date:'dd/MM/yyyy' }}
+            </span>
+          </div>
+
+          <!-- Motivation -->
+          <p *ngIf="app.motivationText"
+             class="text-xs text-slate-500 mt-2 line-clamp-2 italic">
+            "{{ app.motivationText }}"
+          </p>
+        </div>
+
+        <!-- Statut + accès à l'offre -->
+        <div class="shrink-0 flex items-center gap-2">
+          <span class="px-2.5 py-1 text-xs font-medium border rounded-full {{ statusClass(app.status) }}">
+            {{ statusLabel(app.status) }}
+          </span>
+          <span class="material-icons text-slate-300 text-lg" aria-hidden="true">chevron_right</span>
+        </div>
+      </div>
+
+    </div>
   </div>
 
 </div>

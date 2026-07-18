@@ -1,138 +1,169 @@
-<div class="register-container">
-  <div class="register-content">
-    
-    <!-- En-tête -->
-    <div class="register-header">
-      <h1 class="register-title">
-        <mat-icon class="title-icon">business</mat-icon>
-        Inscription Organisation
+<div class="min-h-[calc(100vh-4rem)] flex">
+
+  <!-- Panneau marque (desktop) -->
+  <aside class="hidden lg:flex lg:w-2/5 relative overflow-hidden bg-gradient-to-br from-sky-700 via-sky-600 to-sky-500 flex-col justify-center px-14">
+    <div class="absolute -top-24 -right-24 w-96 h-96 rounded-full bg-sky-400/30 blur-3xl pointer-events-none"></div>
+    <div class="absolute -bottom-32 -left-16 w-80 h-80 rounded-full bg-warm-500/20 blur-3xl pointer-events-none"></div>
+
+    <div class="relative">
+      <div class="flex items-center gap-2 text-white mb-8">
+        <span class="material-icons text-4xl">volunteer_activism</span>
+        <span class="text-2xl font-bold tracking-tight">Je Suis Utile</span>
+      </div>
+      <h1 class="text-4xl font-bold text-white leading-tight mb-4">
+        Trouvez vos<br><span class="text-warm-500">bénévoles</span>
       </h1>
-      <p class="register-subtitle">Créez un compte pour votre organisation</p>
+      <p class="text-sky-100 text-lg leading-relaxed mb-8 max-w-md">
+        Publiez vos missions, recevez des candidatures motivées et gérez tout depuis un tableau de bord simple.
+      </p>
+      <ul class="space-y-3 text-sky-100 text-sm">
+        <li class="flex items-center gap-3">
+          <span class="material-icons text-warm-500 text-xl">campaign</span>
+          Publication d'opportunités avec photos en quelques clics
+        </li>
+        <li class="flex items-center gap-3">
+          <span class="material-icons text-warm-500 text-xl">how_to_reg</span>
+          Gestion des candidatures : consulter, accepter, refuser
+        </li>
+        <li class="flex items-center gap-3">
+          <span class="material-icons text-warm-500 text-xl">verified</span>
+          Un profil public pour valoriser votre organisation
+        </li>
+      </ul>
     </div>
+  </aside>
 
-    <!-- Formulaire d'inscription -->
-    <mat-card class="register-card">
-      <mat-card-content>
-        <form [formGroup]="registerForm" (ngSubmit)="onSubmit()">
-          
-          <!-- Informations de connexion -->
-          <div class="form-section">
-            <h3 class="section-title">
-              <mat-icon class="section-icon">account_circle</mat-icon>
-              Informations de connexion
-            </h3>
-            
-            <div class="form-row">
-              <mat-form-field appearance="outline" class="form-field">
-                <mat-label>Nom d'utilisateur *</mat-label>
-                <input matInput formControlName="username" placeholder="Ex: mon_organisation">
-                <mat-error *ngIf="hasError('username', 'required')">
-                  Le nom d'utilisateur est obligatoire
-                </mat-error>
-                <mat-error *ngIf="hasError('username', 'minlength')">
-                  Minimum 3 caractères
-                </mat-error>
-              </mat-form-field>
+  <!-- Formulaire -->
+  <main class="flex-1 flex justify-center px-4 sm:px-8 py-10 bg-brand-bg">
+    <div class="w-full max-w-xl">
 
-              <mat-form-field appearance="outline" class="form-field">
-                <mat-label>Email *</mat-label>
-                <input matInput type="email" formControlName="email" placeholder="Ex: contact@organisation.com">
-                <mat-error *ngIf="hasError('email', 'required')">
-                  L'email est obligatoire
-                </mat-error>
-                <mat-error *ngIf="hasError('email', 'email')">
-                  Format d'email invalide
-                </mat-error>
-              </mat-form-field>
-            </div>
+      <div class="mb-8">
+        <h2 class="text-2xl font-bold text-slate-800 flex items-center gap-2">
+          <span class="material-icons text-sky-600">business</span>
+          Inscription organisation
+        </h2>
+        <p class="text-sm text-slate-500 mt-1">Créez le compte de votre association ou structure</p>
+      </div>
 
-            <div class="form-row">
-              <mat-form-field appearance="outline" class="form-field">
-                <mat-label>Mot de passe *</mat-label>
-                <input matInput type="password" formControlName="password" placeholder="Minimum 6 caractères">
-                <mat-error *ngIf="hasError('password', 'required')">
-                  Le mot de passe est obligatoire
-                </mat-error>
-                <mat-error *ngIf="hasError('password', 'minlength')">
-                  Minimum 6 caractères
-                </mat-error>
-              </mat-form-field>
-            </div>
+      <form [formGroup]="registerForm" (ngSubmit)="onSubmit()" novalidate>
+
+        <!-- ── Organisation ── -->
+        <section class="bg-white border border-sky-100 rounded-2xl shadow-sm p-6 mb-5">
+          <h3 class="text-base font-semibold text-slate-700 mb-4 flex items-center gap-2">
+            <span class="material-icons text-sky-600 text-lg">business</span>
+            Votre organisation
+          </h3>
+
+          <div class="mb-4">
+            <label class="block text-sm font-medium text-slate-600 mb-1">
+              Nom de l'organisation <span class="text-red-500">*</span>
+            </label>
+            <input formControlName="orgName" type="text" placeholder="Ex : Croix-Rouge Française"
+                   class="w-full px-3 py-2.5 border rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-sky-400 transition"
+                   [ngClass]="hasError('orgName','required') ? 'border-red-400' : 'border-slate-200'">
+            <p *ngIf="hasError('orgName','required')" class="text-xs text-red-500 mt-1">Le nom de l'organisation est obligatoire.</p>
           </div>
 
-          <!-- Informations de l'organisation -->
-          <div class="form-section">
-            <h3 class="section-title">
-              <mat-icon class="section-icon">business</mat-icon>
-              Informations de l'organisation
-            </h3>
-            
-            <mat-form-field appearance="outline" class="full-width">
-              <mat-label>Nom de l'organisation *</mat-label>
-              <input matInput formControlName="orgName" placeholder="Ex: Association Solidarité">
-              <mat-error *ngIf="hasError('orgName', 'required')">
-                Le nom de l'organisation est obligatoire
-              </mat-error>
-            </mat-form-field>
-
-            <div class="form-row">
-              <mat-form-field appearance="outline" class="form-field">
-                <mat-label>Téléphone *</mat-label>
-                <input matInput type="tel" formControlName="phone" placeholder="Ex: 0123456789">
-                <mat-error *ngIf="hasError('phone', 'required')">
-                  Le téléphone est obligatoire
-                </mat-error>
-              </mat-form-field>
-
-              <mat-form-field appearance="outline" class="form-field">
-                <mat-label>Adresse</mat-label>
-                <input matInput formControlName="address" placeholder="Ex: 123 Rue de la Paix, Paris">
-              </mat-form-field>
+          <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <div>
+              <label class="block text-sm font-medium text-slate-600 mb-1">
+                Téléphone <span class="text-red-500">*</span>
+              </label>
+              <input formControlName="phone" type="tel" placeholder="Ex : 01 23 45 67 89"
+                     class="w-full px-3 py-2.5 border rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-sky-400 transition"
+                     [ngClass]="hasError('phone','required') ? 'border-red-400' : 'border-slate-200'">
+              <p *ngIf="hasError('phone','required')" class="text-xs text-red-500 mt-1">Le téléphone est obligatoire.</p>
+            </div>
+            <div>
+              <label class="block text-sm font-medium text-slate-600 mb-1">Adresse</label>
+              <input formControlName="address" type="text" placeholder="Ex : 12 Rue de la Paix, Paris"
+                     class="w-full px-3 py-2.5 border border-slate-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-sky-400 transition">
             </div>
           </div>
+        </section>
 
-          <!-- Informations complémentaires -->
-          <div class="form-section">
-            <h3 class="section-title">
-              <mat-icon class="section-icon">info</mat-icon>
-              Informations complémentaires
-            </h3>
-            
-            <mat-form-field appearance="outline" class="full-width">
-              <mat-label>Biographie</mat-label>
-              <textarea matInput formControlName="bio" rows="3" placeholder="Présentez votre organisation..."></textarea>
-            </mat-form-field>
+        <!-- ── Connexion ── -->
+        <section class="bg-white border border-sky-100 rounded-2xl shadow-sm p-6 mb-5">
+          <h3 class="text-base font-semibold text-slate-700 mb-4 flex items-center gap-2">
+            <span class="material-icons text-sky-600 text-lg">account_circle</span>
+            Informations de connexion
+          </h3>
+
+          <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-4">
+            <div>
+              <label class="block text-sm font-medium text-slate-600 mb-1">
+                Nom d'utilisateur <span class="text-red-500">*</span>
+              </label>
+              <input formControlName="username" type="text" placeholder="Ex : croixrouge_paris"
+                     class="w-full px-3 py-2.5 border rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-sky-400 transition"
+                     [ngClass]="hasError('username','required') || hasError('username','minlength') ? 'border-red-400' : 'border-slate-200'">
+              <p *ngIf="hasError('username','required')" class="text-xs text-red-500 mt-1">Le nom d'utilisateur est obligatoire.</p>
+              <p *ngIf="hasError('username','minlength')" class="text-xs text-red-500 mt-1">Minimum 3 caractères.</p>
+            </div>
+            <div>
+              <label class="block text-sm font-medium text-slate-600 mb-1">
+                Email <span class="text-red-500">*</span>
+              </label>
+              <input formControlName="email" type="email" autocomplete="email" placeholder="Ex : contact@asso.org"
+                     class="w-full px-3 py-2.5 border rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-sky-400 transition"
+                     [ngClass]="hasError('email','required') || hasError('email','email') ? 'border-red-400' : 'border-slate-200'">
+              <p *ngIf="hasError('email','required')" class="text-xs text-red-500 mt-1">L'email est obligatoire.</p>
+              <p *ngIf="hasError('email','email')" class="text-xs text-red-500 mt-1">Format d'email invalide.</p>
+            </div>
           </div>
 
-          <!-- Messages d'erreur -->
-          <div *ngIf="errorMessage" class="error-message">
-            <mat-icon class="error-icon">error</mat-icon>
-            {{errorMessage}}
+          <div class="sm:w-1/2 sm:pr-2">
+            <label class="block text-sm font-medium text-slate-600 mb-1">
+              Mot de passe <span class="text-red-500">*</span>
+            </label>
+            <input formControlName="password" type="password" autocomplete="new-password" placeholder="Minimum 6 caractères"
+                   class="w-full px-3 py-2.5 border rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-sky-400 transition"
+                   [ngClass]="hasError('password','required') || hasError('password','minlength') ? 'border-red-400' : 'border-slate-200'">
+            <p *ngIf="hasError('password','required')" class="text-xs text-red-500 mt-1">Le mot de passe est obligatoire.</p>
+            <p *ngIf="hasError('password','minlength')" class="text-xs text-red-500 mt-1">Minimum 6 caractères.</p>
           </div>
+        </section>
 
-          <!-- Boutons d'action -->
-          <div class="action-buttons">
-            <button mat-button type="button" (click)="onCancel()">
-              <mat-icon class="button-icon">arrow_back</mat-icon>
-              Retour
-            </button>
-            
-            <button mat-raised-button 
-                    color="primary" 
-                    type="submit"
-                    [disabled]="isSubmitting || !registerForm.valid">
-              <mat-spinner diameter="20" *ngIf="isSubmitting" class="button-spinner"></mat-spinner>
-              <mat-icon *ngIf="!isSubmitting" class="button-icon">person_add</mat-icon>
-              {{isSubmitting ? 'Inscription en cours...' : 'S\'inscrire'}}
-            </button>
-          </div>
-        </form>
-      </mat-card-content>
-    </mat-card>
+        <!-- ── Présentation ── -->
+        <section class="bg-white border border-sky-100 rounded-2xl shadow-sm p-6 mb-6">
+          <h3 class="text-base font-semibold text-slate-700 mb-1 flex items-center gap-2">
+            <span class="material-icons text-sky-600 text-lg">edit_note</span>
+            Présentation
+          </h3>
+          <p class="text-xs text-slate-400 mb-4">Optionnel — décrivez vos activités et vos valeurs.</p>
+          <textarea formControlName="bio" rows="3" placeholder="Ex : Notre association lutte contre l'isolement des personnes âgées depuis 2010..."
+                    class="w-full px-3 py-2.5 border border-slate-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-sky-400 transition resize-none"></textarea>
+        </section>
 
-    <!-- Lien vers la connexion -->
-    <div class="login-link">
-      <p>Déjà un compte ? <a routerLink="/login">Se connecter</a></p>
+        <!-- Erreur -->
+        <div *ngIf="errorMessage"
+             class="flex items-center gap-2 p-3 bg-red-50 border border-red-200 rounded-lg text-red-700 text-sm mb-5">
+          <span class="material-icons text-base">error_outline</span>
+          {{ errorMessage }}
+        </div>
+
+        <!-- Actions -->
+        <div class="flex items-center justify-between">
+          <button type="button" (click)="onCancel()"
+                  class="flex items-center gap-1.5 px-4 py-2 text-sm text-slate-600 hover:bg-slate-100 rounded-lg transition-colors">
+            <span class="material-icons text-base">arrow_back</span>
+            Retour
+          </button>
+          <button type="submit"
+                  [disabled]="isSubmitting || !registerForm.valid"
+                  class="flex items-center gap-2 px-6 py-2.5 bg-sky-600 hover:bg-sky-700 text-white text-sm font-semibold rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed">
+            <div *ngIf="isSubmitting" class="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
+            <span *ngIf="!isSubmitting" class="material-icons text-base">business</span>
+            {{ isSubmitting ? 'Inscription en cours...' : 'Créer le compte' }}
+          </button>
+        </div>
+      </form>
+
+      <p class="mt-6 text-center text-sm text-slate-500">
+        Déjà un compte ?
+        <a routerLink="/login/organisation" class="text-sky-600 font-medium hover:underline">Espace organisation</a>
+      </p>
+
     </div>
-  </div>
+  </main>
 </div>

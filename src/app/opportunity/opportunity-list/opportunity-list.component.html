@@ -1,94 +1,229 @@
-<div class="opportunity-list-container">
-  
-  <!-- Filtres -->
-  <form [formGroup]="filtersForm" class="filters-form">
-    <mat-form-field appearance="outline">
-      <mat-label>Catégorie</mat-label>
-      <mat-select formControlName="categoryId">
-        <mat-option [value]="null">Toutes</mat-option>
-        <mat-option *ngFor="let cat of categories" [value]="cat.id">{{cat.name}}</mat-option>
-      </mat-select>
-    </mat-form-field>
+<!-- ═══════════ HERO ═══════════ -->
+<section class="relative overflow-hidden bg-gradient-to-br from-sky-700 via-sky-600 to-sky-500">
+  <!-- Halo décoratif -->
+  <div class="absolute -top-24 -right-24 w-96 h-96 rounded-full bg-sky-400/30 blur-3xl pointer-events-none"></div>
+  <div class="absolute -bottom-32 -left-16 w-80 h-80 rounded-full bg-warm-500/20 blur-3xl pointer-events-none"></div>
 
-    <mat-form-field appearance="outline">
-      <mat-label>Ville</mat-label>
-      <input matInput formControlName="town" placeholder="Ex: Paris">
-    </mat-form-field>
+  <div class="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-14 pb-16 sm:pt-20 sm:pb-24">
+    <div class="max-w-2xl">
+      <h1 class="text-3xl sm:text-5xl font-bold text-white leading-tight tracking-tight">
+        Donnez de votre temps,<br>
+        <span class="relative inline-block">
+          soyez <span class="text-warm-500">utile</span>
+          <svg class="absolute -bottom-2 left-0 w-full" height="8" viewBox="0 0 200 8" preserveAspectRatio="none" aria-hidden="true">
+            <path d="M0,6 Q100,0 200,5" stroke="#f97316" stroke-width="3" fill="none" stroke-linecap="round"/>
+          </svg>
+        </span>
+      </h1>
+      <p class="mt-5 text-sky-100 text-base sm:text-lg leading-relaxed">
+        Trouvez une mission de bénévolat près de chez vous ou à distance,
+        et rejoignez les organisations qui ont besoin de vous.
+      </p>
+    </div>
 
-    <mat-form-field appearance="outline">
-      <mat-label>Date de début</mat-label>
-      <input matInput [matDatepicker]="startPicker" formControlName="startDate" placeholder="Choisir une date">
-      <mat-datepicker-toggle matSuffix [for]="startPicker"></mat-datepicker-toggle>
-      <mat-datepicker #startPicker></mat-datepicker>
-    </mat-form-field>
+    <!-- Recherche rapide -->
+    <form [formGroup]="filtersForm" (ngSubmit)="onApplyFilters()"
+          class="mt-8 bg-white rounded-2xl shadow-lg p-2 flex flex-col sm:flex-row gap-2 max-w-3xl">
+      <div class="flex items-center gap-2 flex-1 px-3">
+        <span class="material-icons text-slate-400">search</span>
+        <input formControlName="title" type="text"
+               placeholder="Quelle mission ? Ex : collecte, soutien scolaire…"
+               aria-label="Rechercher une mission"
+               class="w-full py-2.5 text-sm text-slate-700 placeholder-slate-400 border-0 focus:outline-none focus:ring-0">
+      </div>
+      <div class="hidden sm:block w-px bg-slate-200 my-2"></div>
+      <div class="flex items-center gap-2 sm:w-56 px-3 border-t sm:border-t-0 border-slate-100">
+        <span class="material-icons text-slate-400">place</span>
+        <input formControlName="town" type="text"
+               placeholder="Ville"
+               aria-label="Ville"
+               class="w-full py-2.5 text-sm text-slate-700 placeholder-slate-400 border-0 focus:outline-none focus:ring-0">
+      </div>
+      <button type="submit"
+              class="shrink-0 px-6 py-2.5 bg-warm-500 hover:bg-warm-600 text-white text-sm font-semibold rounded-xl transition-colors">
+        Rechercher
+      </button>
+    </form>
 
-    <mat-form-field appearance="outline" class="title-field">
-      <mat-label>Titre</mat-label>
-      <input matInput formControlName="title" placeholder="Ex: Collecte de dons">
-    </mat-form-field>
+    <!-- Chips catégories -->
+    <div *ngIf="categories.length" class="mt-5 flex flex-wrap gap-2 max-w-3xl">
+      <button type="button" (click)="onCategoryChip(null)"
+              [ngClass]="!activeCategory ? 'bg-white text-sky-700' : 'bg-white/15 text-white'"
+              class="px-3 py-1.5 text-xs font-medium rounded-full border border-white/30 hover:bg-white hover:text-sky-700 transition-colors">
+        Toutes
+      </button>
+      <button *ngFor="let cat of categories" type="button"
+              (click)="onCategoryChip(cat.name)"
+              [ngClass]="activeCategory === cat.name ? 'bg-white text-sky-700' : 'bg-white/15 text-white'"
+              class="px-3 py-1.5 text-xs font-medium rounded-full border border-white/30 hover:bg-white hover:text-sky-700 transition-colors">
+        {{ cat.name }}
+      </button>
+    </div>
+  </div>
+</section>
 
-    <div class="apply-button">
-      <button mat-raised-button color="primary" type="button" (click)="onApplyFilters()">
+<div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+
+  <!-- Feed loading -->
+  <div *ngIf="isFeedLoading" class="flex justify-center py-8">
+    <div class="w-8 h-8 border-4 border-sky-200 border-t-sky-600 rounded-full animate-spin"></div>
+  </div>
+
+  <!-- Section Pour vous (filtrée comme la liste principale) -->
+  <div *ngIf="!isFeedLoading && isVolunteer && filteredFeedPreferred.length > 0" class="mb-10">
+    <div class="flex items-center gap-2 mb-4">
+      <span class="material-icons text-warm-500">star</span>
+      <h2 class="text-xl font-bold text-slate-800">Pour vous</h2>
+      <span class="text-xs text-slate-400 mt-1">sélection selon vos catégories préférées</span>
+    </div>
+    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
+      <app-opportunity-card *ngFor="let opp of filteredFeedPreferred" [opportunity]="opp"></app-opportunity-card>
+    </div>
+  </div>
+
+  <!-- Section Opportunités récentes (filtrée comme la liste principale) -->
+  <div *ngIf="!isFeedLoading && filteredFeedRecent.length > 0" class="mb-10">
+    <div class="flex items-center gap-2 mb-4">
+      <span class="material-icons text-sky-500">schedule</span>
+      <h2 class="text-xl font-bold text-slate-800">Opportunités récentes</h2>
+    </div>
+    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
+      <app-opportunity-card *ngFor="let opp of filteredFeedRecent" [opportunity]="opp"></app-opportunity-card>
+    </div>
+  </div>
+
+  <!-- ═══════════ Toutes les opportunités ═══════════ -->
+  <div class="flex items-center justify-between mb-4">
+    <div class="flex items-center gap-2">
+      <span class="material-icons text-sky-500">explore</span>
+      <h2 class="text-xl font-bold text-slate-800">Toutes les opportunités</h2>
+    </div>
+    <button type="button" (click)="filtersOpen = !filtersOpen"
+            class="flex items-center gap-1.5 px-3 py-2 text-sm font-medium rounded-lg border transition-colors"
+            [class.bg-sky-50]="filtersOpen"
+            [class.border-sky-300]="filtersOpen"
+            [class.text-sky-700]="filtersOpen"
+            [class.border-slate-200]="!filtersOpen"
+            [class.text-slate-600]="!filtersOpen">
+      <span class="material-icons text-base">tune</span>
+      Filtres avancés
+    </button>
+  </div>
+
+  <!-- Filtres avancés (repliables) -->
+  <form *ngIf="filtersOpen" [formGroup]="filtersForm"
+        class="bg-white border border-sky-100 rounded-xl shadow-sm p-5 mb-6">
+    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 items-end">
+
+      <div class="flex flex-col gap-1">
+        <label class="text-xs font-medium text-slate-500 uppercase tracking-wide">Catégorie</label>
+        <select formControlName="category"
+                class="w-full px-3 py-2 rounded-lg border border-slate-200 text-sm text-slate-700 bg-white focus:outline-none focus:ring-2 focus:ring-sky-500 focus:border-sky-500 transition">
+          <option [ngValue]="null">Toutes</option>
+          <option *ngFor="let cat of categories" [value]="cat.name">{{cat.name}}</option>
+        </select>
+      </div>
+
+      <div class="flex flex-col gap-1">
+        <label class="text-xs font-medium text-slate-500 uppercase tracking-wide">Date de début</label>
+        <input formControlName="startDate" type="date"
+               class="w-full px-3 py-2 rounded-lg border border-slate-200 text-sm text-slate-700 focus:outline-none focus:ring-2 focus:ring-sky-500 focus:border-sky-500 transition">
+      </div>
+
+      <div class="flex flex-col gap-1">
+        <label class="text-xs font-medium text-slate-500 uppercase tracking-wide">Type</label>
+        <select formControlName="workType"
+                class="w-full px-3 py-2 rounded-lg border border-slate-200 text-sm text-slate-700 bg-white focus:outline-none focus:ring-2 focus:ring-sky-500 focus:border-sky-500 transition">
+          <option [ngValue]="null">Tous</option>
+          <option *ngFor="let wt of workTypes" [value]="wt.value">{{wt.label}}</option>
+        </select>
+      </div>
+
+      <div class="flex flex-col gap-1">
+        <label class="text-xs font-medium text-slate-500 uppercase tracking-wide">Statut</label>
+        <select formControlName="status"
+                class="w-full px-3 py-2 rounded-lg border border-slate-200 text-sm text-slate-700 bg-white focus:outline-none focus:ring-2 focus:ring-sky-500 focus:border-sky-500 transition">
+          <option [ngValue]="null">Tous</option>
+          <option *ngFor="let s of statuses" [value]="s.value">{{s.label}}</option>
+        </select>
+      </div>
+    </div>
+
+    <div class="mt-4 flex justify-end gap-2">
+      <button type="button" (click)="onResetFilters()"
+              class="px-4 py-2 text-sm text-slate-500 hover:bg-slate-100 rounded-lg transition-colors">
+        Réinitialiser
+      </button>
+      <button type="button" (click)="onApplyFilters()"
+              class="px-5 py-2 bg-sky-600 hover:bg-sky-700 text-white text-sm font-medium rounded-lg transition-colors">
         Appliquer les filtres
       </button>
     </div>
   </form>
 
-  <!-- État de chargement -->
-  <div class="loading" *ngIf="isLoading">
-    <mat-spinner diameter="40"></mat-spinner>
+  <!-- Chargement liste principale -->
+  <div *ngIf="isLoading" class="flex justify-center py-16">
+    <div class="w-10 h-10 border-4 border-sky-200 border-t-sky-600 rounded-full animate-spin"></div>
   </div>
 
-  <!-- Message d'erreur -->
-  <div class="error" *ngIf="!isLoading && errorMessage">
-    <mat-icon>error</mat-icon>
-    {{errorMessage}}
+  <!-- Erreur -->
+  <div *ngIf="!isLoading && errorMessage"
+       class="flex items-center gap-3 p-4 bg-red-50 border border-red-200 rounded-xl text-red-700 text-sm mb-6">
+    <span class="material-icons text-lg">error_outline</span>
+    {{ errorMessage }}
   </div>
 
   <!-- Grille des opportunités -->
-  <div class="opportunities" *ngIf="!isLoading && !errorMessage">
-    <div class="opportunity" *ngFor="let opportunity of opportunityPagination.opportunities">
-      <mat-card class="opportunity-card" appearance="outlined">
-        <mat-card-header>
-          <div class="placeholder-image" mat-card-avatar>
-            <mat-icon class="placeholder-icon">volunteer_activism</mat-icon>
-          </div>
-          <mat-card-title>{{opportunity.title}}</mat-card-title>
-          <mat-card-subtitle>{{opportunity.town}}</mat-card-subtitle>
-        </mat-card-header>
-        <mat-card-content>
-          <p class="description">{{opportunity.description}}</p>
-          <div class="meta">
-            <span class="label">Début :</span> {{opportunity.startDate | date:'dd/MM/yyyy'}}
-            &nbsp;·&nbsp;
-            <span class="label">Fin :</span> {{opportunity.endDate | date:'dd/MM/yyyy'}}
-          </div>
-        </mat-card-content>
-        <mat-card-actions align="end">
-          <button mat-button 
-                  color="primary" 
-                  (click)="navigateToDetail(opportunity.id!)"
-                  [disabled]="!opportunity.id">
-            <mat-icon>visibility</mat-icon>
-            Détails
-          </button>
-        </mat-card-actions>
-      </mat-card>
-    </div>
+  <div *ngIf="!isLoading && !errorMessage">
 
     <!-- Vide -->
-    <div class="empty" *ngIf="opportunityPagination.opportunities?.length === 0">
-      <mat-icon>inbox</mat-icon>
-      Aucune opportunité trouvée avec ces filtres.
+    <div *ngIf="opportunityPagination.opportunities?.length === 0"
+         class="flex flex-col items-center justify-center py-20 text-slate-400">
+      <span class="material-icons text-5xl mb-3">inbox</span>
+      <p class="text-sm">Aucune opportunité trouvée avec ces filtres.</p>
+      <button type="button" (click)="onResetFilters()"
+              class="mt-3 text-sm text-sky-600 hover:underline">Réinitialiser les filtres</button>
+    </div>
+
+    <!-- Cards -->
+    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5 mb-6">
+      <app-opportunity-card *ngFor="let opportunity of opportunityPagination.opportunities"
+                            [opportunity]="opportunity"></app-opportunity-card>
+    </div>
+
+    <!-- Pagination -->
+    <div *ngIf="opportunityPagination.totalItems > 0"
+         class="flex items-center justify-between bg-white border border-sky-100 rounded-xl px-5 py-3">
+
+      <div class="flex items-center gap-2 text-sm text-slate-500">
+        <span>Lignes :</span>
+        <select [value]="opportunityPagination.itemsPerPage"
+                (change)="onPageSizeChange(+$any($event.target).value)"
+                class="w-20 border border-slate-200 rounded-lg pl-3 pr-8 py-1 text-sm text-slate-700 focus:outline-none focus:ring-2 focus:ring-sky-500">
+          <option value="5">5</option>
+          <option value="10">10</option>
+          <option value="20">20</option>
+        </select>
+      </div>
+
+      <span class="text-sm text-slate-500">
+        {{ pageStart }} – {{ pageEnd }} sur {{ opportunityPagination.totalItems }}
+      </span>
+
+      <div class="flex items-center gap-1">
+        <button (click)="onPageChange(opportunityPagination.currentPage - 1)"
+                [disabled]="opportunityPagination.currentPage === 0"
+                class="p-1.5 rounded-lg text-slate-600 hover:bg-sky-50 disabled:opacity-30 disabled:cursor-not-allowed transition-colors">
+          <span class="material-icons text-base">chevron_left</span>
+        </button>
+        <button (click)="onPageChange(opportunityPagination.currentPage + 1)"
+                [disabled]="opportunityPagination.currentPage >= totalPages - 1"
+                class="p-1.5 rounded-lg text-slate-600 hover:bg-sky-50 disabled:opacity-30 disabled:cursor-not-allowed transition-colors">
+          <span class="material-icons text-base">chevron_right</span>
+        </button>
+      </div>
+
     </div>
   </div>
 
-  <!-- Pagination -->
-  <mat-paginator
-    [length]="opportunityPagination.totalItems || 0"
-    [pageIndex]="opportunityPagination.currentPage || 0"
-    [pageSize]="opportunityPagination.itemsPerPage || 10"
-    [pageSizeOptions]="[5,10,20]"
-    (page)="onPageChange($event)">
-  </mat-paginator>
 </div>

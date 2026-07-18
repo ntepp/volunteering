@@ -1,47 +1,62 @@
-import { Component, OnInit, OnDestroy } from '@angular/core';
+import { Component, OnInit, OnDestroy, HostListener } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { Router, RouterModule } from '@angular/router';
-import { MatToolbarModule } from '@angular/material/toolbar';
-import { MatIconModule } from '@angular/material/icon';
-import { MatButtonModule } from '@angular/material/button';
-import { MatMenuModule } from '@angular/material/menu';
-import { MatBadgeModule } from '@angular/material/badge';
-import { MatDividerModule } from '@angular/material/divider';
 import { Subject, takeUntil } from 'rxjs';
 
 import { AuthService } from '../../auth/services/auth.service';
+import { VolunteerProfileService } from '../../user/services/volunteer-profile.service';
+import { OrgProfileService } from '../../user/services/org-profile.service';
+import { NotificationStateService } from '../../notification/services/notification-state.service';
 
 @Component({
   selector: 'app-header',
   standalone: true,
   imports: [
     CommonModule,
-    RouterModule,
-    MatToolbarModule,
-    MatIconModule,
-    MatButtonModule,
-    MatMenuModule,
-    MatBadgeModule,
-    MatDividerModule
+    RouterModule
   ],
   templateUrl: './header.component.html',
   styleUrl: './header.component.css'
 })
 export class HeaderComponent implements OnInit, OnDestroy {
-  
+
   isAuthenticated = false;
-  user: any = null;
+  userRole: string | null = null;
+  displayName = '';
+  avatarUrl: string | null = null;
+  unreadCount = 0;
   isMenuOpen = false;
-  
+  isUserMenuOpen = false;
+
   private destroy$ = new Subject<void>();
 
   constructor(
     private authService: AuthService,
+    private volunteerProfileService: VolunteerProfileService,
+    private orgProfileService: OrgProfileService,
+    private notificationState: NotificationStateService,
     public router: Router
   ) {}
 
   ngOnInit(): void {
-    this.checkAuthStatus();
+    this.authService.isAuthenticated$
+      .pipe(takeUntil(this.destroy$))
+      .subscribe(authenticated => {
+        this.isAuthenticated = authenticated;
+        this.userRole = authenticated ? this.authService.getUserRole() : null;
+        this.displayName = '';
+        this.avatarUrl = null;
+        if (authenticated) {
+          this.loadIdentity();
+          this.notificationState.refresh();
+        } else {
+          this.notificationState.setUnreadCount(0);
+        }
+      });
+
+    this.notificationState.unreadCount$
+      .pipe(takeUntil(this.destroy$))
+      .subscribe(count => this.unreadCount = count);
   }
 
   ngOnDestroy(): void {
@@ -49,57 +64,78 @@ export class HeaderComponent implements OnInit, OnDestroy {
     this.destroy$.complete();
   }
 
-  private checkAuthStatus(): void {
-    this.isAuthenticated = this.authService.isAuthenticated();
-    if (this.isAuthenticated) {
-      this.user = this.authService.getUserData();
+  /** Charge le nom d'affichage et l'avatar selon le rôle. */
+  private loadIdentity(): void {
+    if (this.isVolunteer) {
+      this.volunteerProfileService.getMyProfile()
+        .pipe(takeUntil(this.destroy$))
+        .subscribe({
+          next: (p) => {
+            this.displayName = p.firstName || p.username || '';
+            this.avatarUrl = p.profileImage ?? null;
+          },
+          error: () => {}
+        });
+    } else if (this.isOrganization) {
+      const userId = this.authService.getUserData()?.userId;
+      if (!userId) return;
+      this.orgProfileService.getOrgById(String(userId))
+        .pipe(takeUntil(this.destroy$))
+        .subscribe({
+          next: (p) => {
+            this.displayName = p.orgName || '';
+            this.avatarUrl = p.profileImage ?? null;
+          },
+          error: () => {}
+        });
     }
+  }
+
+  get isVolunteer(): boolean {
+    return this.userRole?.toUpperCase() === 'VOLUNTEER';
+  }
+
+  get isOrganization(): boolean {
+    return this.userRole?.toUpperCase() === 'ORGANIZATION';
   }
 
   onLogout(): void {
-    this.authService.clearUserData();
-    this.isAuthenticated = false;
-    this.user = null;
-    this.router.navigate(['/']);
-  }
-
-  onMyAccount(): void {
-    if (!this.isAuthenticated) {
-      this.router.navigate(['/login']);
-      return;
-    }
-    const role = this.user?.role?.toUpperCase();
-    if (role === 'ORGANIZATION') {
-      this.router.navigate(['/volunteering/opportunities/my']);
-    } else {
-      this.router.navigate(['/applications']);
-    }
+    this.isUserMenuOpen = false;
+    this.isMenuOpen = false;
+    this.authService.logout()
+      .pipe(takeUntil(this.destroy$))
+      .subscribe({
+        complete: () => this.router.navigate(['/']),
+        error: () => this.router.navigate(['/'])
+      });
   }
 
   toggleMenu(): void {
     this.isMenuOpen = !this.isMenuOpen;
+    this.isUserMenuOpen = false;
   }
 
   closeMenu(): void {
     this.isMenuOpen = false;
+    this.isUserMenuOpen = false;
+  }
+
+  toggleUserMenu(): void {
+    this.isUserMenuOpen = !this.isUserMenuOpen;
+  }
+
+  @HostListener('document:click', ['$event'])
+  onDocumentClick(event: MouseEvent): void {
+    const target = event.target as HTMLElement;
+    if (!target.closest('.user-menu-wrapper')) {
+      this.isUserMenuOpen = false;
+    }
   }
 
   onPublishOpportunity(): void {
-    // Vérifier si l'utilisateur est connecté
-    if (!this.isAuthenticated) {
-      // Non connecté : rediriger vers l'inscription organisation
-      this.router.navigate(['/register/organisation']);
-      return;
-    }
-
-    // Vérifier le rôle de l'utilisateur
-    const userRole = this.user?.role?.toUpperCase();
-    
-    if (userRole === 'ORGANIZATION') {
-      // Organisation : autoriser l'accès à la création
+    if (this.isOrganization) {
       this.router.navigate(['/volunteering/opportunities/create']);
     } else {
-      // Volontaire ou autre : rediriger vers l'inscription organisation
       this.router.navigate(['/register/organisation']);
     }
   }

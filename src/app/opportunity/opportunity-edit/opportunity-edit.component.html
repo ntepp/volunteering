@@ -1,0 +1,292 @@
+<div class="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+
+  <!-- Header -->
+  <div class="flex items-center gap-3 mb-8">
+    <button (click)="onCancel()" type="button"
+            class="p-1.5 rounded-lg text-slate-500 hover:bg-slate-100 transition-colors">
+      <span class="material-icons text-xl">arrow_back</span>
+    </button>
+    <div>
+      <h1 class="text-2xl font-bold text-slate-800">Modifier l'opportunité</h1>
+      <p class="text-sm text-slate-500 mt-0.5">Mettez à jour les informations de votre offre</p>
+    </div>
+  </div>
+
+  <!-- Chargement -->
+  <div *ngIf="isLoading" class="flex justify-center py-20">
+    <div class="w-10 h-10 border-4 border-sky-200 border-t-sky-600 rounded-full animate-spin"></div>
+  </div>
+
+  <!-- Erreur chargement -->
+  <div *ngIf="!isLoading && errorMessage && !opportunityForm"
+       class="flex items-center gap-3 p-4 bg-red-50 border border-red-200 rounded-xl text-red-700 text-sm mb-5">
+    <span class="material-icons text-lg">error_outline</span>
+    {{ errorMessage }}
+  </div>
+
+  <!-- Formulaire -->
+  <form *ngIf="!isLoading" [formGroup]="opportunityForm" (ngSubmit)="onSubmit()" novalidate>
+
+    <!-- ── Informations générales ── -->
+    <section class="bg-white border border-sky-100 rounded-xl shadow-sm p-6 mb-5">
+      <h2 class="text-base font-semibold text-slate-700 mb-4 flex items-center gap-2">
+        <span class="material-icons text-sky-600 text-lg">info</span>
+        Informations générales
+      </h2>
+
+      <div class="mb-4">
+        <label class="block text-sm font-medium text-slate-600 mb-1">
+          Titre <span class="text-red-500">*</span>
+        </label>
+        <input formControlName="title" type="text"
+               placeholder="Ex: Distribution de repas aux sans-abri"
+               class="w-full px-3 py-2 border rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-sky-400 transition"
+               [class.border-red-400]="hasError('title','required') || hasError('title','minlength') || hasError('title','maxlength')"
+               [class.border-slate-200]="!hasError('title','required') && !hasError('title','minlength') && !hasError('title','maxlength')">
+        <p *ngIf="hasError('title','required')" class="text-xs text-red-500 mt-1">Le titre est obligatoire.</p>
+        <p *ngIf="hasError('title','minlength')" class="text-xs text-red-500 mt-1">Minimum 3 caractères.</p>
+        <p *ngIf="hasError('title','maxlength')" class="text-xs text-red-500 mt-1">Maximum 100 caractères.</p>
+      </div>
+
+      <div class="mb-4">
+        <label class="block text-sm font-medium text-slate-600 mb-1">
+          Description <span class="text-red-500">*</span>
+        </label>
+        <textarea formControlName="description" rows="4"
+                  placeholder="Décrivez en détail l'opportunité de bénévolat..."
+                  class="w-full px-3 py-2 border rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-sky-400 transition resize-none"
+                  [class.border-red-400]="hasError('description','required') || hasError('description','minlength')"
+                  [class.border-slate-200]="!hasError('description','required') && !hasError('description','minlength')"></textarea>
+        <p *ngIf="hasError('description','required')" class="text-xs text-red-500 mt-1">La description est obligatoire.</p>
+        <p *ngIf="hasError('description','minlength')" class="text-xs text-red-500 mt-1">Minimum 20 caractères.</p>
+      </div>
+
+      <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+        <div>
+          <label class="block text-sm font-medium text-slate-600 mb-1">
+            Ville <span class="text-red-500">*</span>
+          </label>
+          <input formControlName="town" type="text" placeholder="Ex: Paris"
+                 class="w-full px-3 py-2 border rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-sky-400 transition"
+                 [class.border-red-400]="hasError('town','required')"
+                 [class.border-slate-200]="!hasError('town','required')">
+          <p *ngIf="hasError('town','required')" class="text-xs text-red-500 mt-1">La ville est obligatoire.</p>
+        </div>
+        <div>
+          <label class="block text-sm font-medium text-slate-600 mb-1">Adresse</label>
+          <input formControlName="location" type="text" placeholder="Ex: 12 Rue de la Paix"
+                 class="w-full px-3 py-2 border border-slate-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-sky-400 transition">
+        </div>
+      </div>
+
+      <!-- Bénévoles recherchés -->
+      <div class="mt-4 w-full sm:w-64">
+        <label class="block text-sm font-medium text-slate-600 mb-1">Bénévoles recherchés</label>
+        <input formControlName="volunteersNeeded" type="number" min="1" max="1000" placeholder="Ex: 5"
+               class="w-full px-3 py-2 border rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-sky-400 transition"
+               [class.border-red-400]="hasError('volunteersNeeded','min') || hasError('volunteersNeeded','max')"
+               [class.border-slate-200]="!hasError('volunteersNeeded','min') && !hasError('volunteersNeeded','max')">
+        <p *ngIf="hasError('volunteersNeeded','min') || hasError('volunteersNeeded','max')"
+           class="text-xs text-red-500 mt-1">Entrez un nombre entre 1 et 1000.</p>
+      </div>
+    </section>
+
+    <!-- ── Photos ── -->
+    <section class="bg-white border border-sky-100 rounded-xl shadow-sm p-6 mb-5">
+      <h2 class="text-base font-semibold text-slate-700 mb-1 flex items-center gap-2">
+        <span class="material-icons text-sky-600 text-lg">photo_camera</span>
+        Photos
+      </h2>
+      <p class="text-xs text-slate-400 mb-4">Optionnel — jusqu'à {{ maxImages }} photos (JPEG, PNG, WebP ou GIF, 5 Mo max). La première sert de couverture.</p>
+
+      <div class="flex flex-wrap gap-3">
+        <!-- Miniatures -->
+        <div *ngFor="let url of imageUrls; let i = index"
+             class="relative w-28 h-28 rounded-xl overflow-hidden border border-slate-200 group">
+          <img [src]="url" alt="Photo de l'opportunité" class="w-full h-full object-cover">
+          <span *ngIf="i === 0"
+                class="absolute bottom-1 left-1 px-1.5 py-0.5 text-[10px] font-medium bg-sky-600/90 text-white rounded">
+            Couverture
+          </span>
+          <button type="button" (click)="removeImage(i)"
+                  aria-label="Supprimer cette photo"
+                  class="absolute top-1 right-1 p-1 bg-white/90 rounded-full text-red-500 hover:bg-red-50 shadow-sm transition-colors">
+            <span class="material-icons text-sm block">close</span>
+          </button>
+        </div>
+
+        <!-- Bouton d'ajout -->
+        <label *ngIf="imageUrls.length < maxImages"
+               class="w-28 h-28 rounded-xl border-2 border-dashed border-slate-300 hover:border-sky-400 hover:bg-sky-50/50 flex flex-col items-center justify-center gap-1 cursor-pointer text-slate-400 hover:text-sky-500 transition-colors"
+               [class.pointer-events-none]="isUploadingImage"
+               [class.opacity-60]="isUploadingImage">
+          <ng-container *ngIf="!isUploadingImage">
+            <span class="material-icons">add_photo_alternate</span>
+            <span class="text-xs font-medium">Ajouter</span>
+          </ng-container>
+          <div *ngIf="isUploadingImage"
+               class="w-6 h-6 border-2 border-sky-200 border-t-sky-600 rounded-full animate-spin"></div>
+          <input type="file" class="sr-only" accept="image/jpeg,image/png,image/webp,image/gif"
+                 (change)="onImageSelected($event)">
+        </label>
+      </div>
+
+      <p *ngIf="imageError" class="text-xs text-red-500 mt-2 flex items-center gap-1">
+        <span class="material-icons text-sm">error_outline</span>
+        {{ imageError }}
+      </p>
+    </section>
+
+    <!-- ── Période ── -->
+    <section class="bg-white border border-sky-100 rounded-xl shadow-sm p-6 mb-5">
+      <h2 class="text-base font-semibold text-slate-700 mb-4 flex items-center gap-2">
+        <span class="material-icons text-sky-600 text-lg">event</span>
+        Période
+      </h2>
+      <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+        <div>
+          <label class="block text-sm font-medium text-slate-600 mb-1">
+            Date de début <span class="text-red-500">*</span>
+          </label>
+          <input formControlName="startDate" type="date"
+                 class="w-full px-3 py-2 border rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-sky-400 transition"
+                 [class.border-red-400]="hasError('startDate','required')"
+                 [class.border-slate-200]="!hasError('startDate','required')">
+          <p *ngIf="hasError('startDate','required')" class="text-xs text-red-500 mt-1">La date de début est obligatoire.</p>
+        </div>
+        <div>
+          <label class="block text-sm font-medium text-slate-600 mb-1">
+            Date de fin <span class="text-red-500">*</span>
+          </label>
+          <input formControlName="endDate" type="date"
+                 class="w-full px-3 py-2 border rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-sky-400 transition"
+                 [class.border-red-400]="hasError('endDate','required') || dateRangeError"
+                 [class.border-slate-200]="!hasError('endDate','required') && !dateRangeError">
+          <p *ngIf="hasError('endDate','required')" class="text-xs text-red-500 mt-1">La date de fin est obligatoire.</p>
+          <p *ngIf="dateRangeError" class="text-xs text-red-500 mt-1">La date de fin doit être postérieure à la date de début.</p>
+        </div>
+      </div>
+    </section>
+
+    <!-- ── Catégories ── -->
+    <section class="bg-white border border-sky-100 rounded-xl shadow-sm p-6 mb-5">
+      <h2 class="text-base font-semibold text-slate-700 mb-1 flex items-center gap-2">
+        <span class="material-icons text-sky-600 text-lg">category</span>
+        Catégories <span class="text-red-500">*</span>
+      </h2>
+      <p class="text-xs text-slate-400 mb-4">Sélectionnez au moins une catégorie.</p>
+
+      <div class="grid grid-cols-2 sm:grid-cols-3 gap-2">
+        <label *ngFor="let cat of categories"
+               class="flex items-center gap-2 px-3 py-2 border rounded-lg cursor-pointer text-sm transition hover:border-sky-400"
+               [class.border-sky-400]="isCategorySelected(cat.name)"
+               [class.bg-sky-50]="isCategorySelected(cat.name)"
+               [class.text-sky-700]="isCategorySelected(cat.name)"
+               [class.border-slate-200]="!isCategorySelected(cat.name)"
+               [class.text-slate-600]="!isCategorySelected(cat.name)">
+          <input type="checkbox" class="sr-only"
+                 [checked]="isCategorySelected(cat.name)"
+                 (change)="onCategoryChange(cat.name, $any($event.target).checked)">
+          {{ cat.name }}
+        </label>
+      </div>
+
+      <p *ngIf="opportunityForm.get('categoryNames')?.hasError('minLength') && opportunityForm.get('categoryNames')?.touched"
+         class="text-xs text-red-500 mt-2">Veuillez sélectionner au moins une catégorie.</p>
+    </section>
+
+    <!-- ── Type de bénévolat ── -->
+    <section class="bg-white border border-sky-100 rounded-xl shadow-sm p-6 mb-5">
+      <h2 class="text-base font-semibold text-slate-700 mb-4 flex items-center gap-2">
+        <span class="material-icons text-sky-600 text-lg">work_outline</span>
+        Type de bénévolat
+      </h2>
+      <select formControlName="workType"
+              class="w-full sm:w-64 px-3 py-2 border border-slate-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-sky-400 transition bg-white">
+        <option value="">Non précisé</option>
+        <option *ngFor="let wt of workTypes" [value]="wt.value">{{ wt.label }}</option>
+      </select>
+    </section>
+
+    <!-- ── Compétences ── -->
+    <section class="bg-white border border-sky-100 rounded-xl shadow-sm p-6 mb-5">
+      <h2 class="text-base font-semibold text-slate-700 mb-1 flex items-center gap-2">
+        <span class="material-icons text-sky-600 text-lg">psychology</span>
+        Compétences requises
+      </h2>
+      <p class="text-xs text-slate-400 mb-4">Optionnel — précisez les compétences souhaitées.</p>
+
+      <div formArrayName="skills">
+        <div *ngFor="let skill of skillsArray.controls; let i = index"
+             [formGroupName]="i"
+             class="flex items-start gap-3 mb-3">
+          <div class="flex-1">
+            <input formControlName="name" type="text" placeholder="Ex: Communication"
+                   class="w-full px-3 py-2 border rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-sky-400 transition"
+                   [class.border-red-400]="skill.get('name')?.invalid && skill.get('name')?.touched"
+                   [class.border-slate-200]="!(skill.get('name')?.invalid && skill.get('name')?.touched)">
+          </div>
+          <div class="w-36">
+            <select formControlName="level"
+                    class="w-full px-3 py-2 border border-slate-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-sky-400 transition bg-white">
+              <option *ngFor="let lv of skillLevels" [value]="lv.value">{{ lv.label }}</option>
+            </select>
+          </div>
+          <button type="button" (click)="removeSkill(i)"
+                  class="p-2 rounded-lg text-red-400 hover:bg-red-50 transition-colors mt-0.5">
+            <span class="material-icons text-base">delete_outline</span>
+          </button>
+        </div>
+      </div>
+
+      <button type="button" (click)="addSkill()"
+              class="flex items-center gap-1.5 px-3 py-2 border border-sky-200 text-sky-600 text-sm font-medium rounded-lg hover:bg-sky-50 transition-colors">
+        <span class="material-icons text-base">add</span>
+        Ajouter une compétence
+      </button>
+    </section>
+
+    <!-- ── Exigences ── -->
+    <section class="bg-white border border-sky-100 rounded-xl shadow-sm p-6 mb-6">
+      <h2 class="text-base font-semibold text-slate-700 mb-1 flex items-center gap-2">
+        <span class="material-icons text-sky-600 text-lg">assignment</span>
+        Exigences particulières
+      </h2>
+      <p class="text-xs text-slate-400 mb-4">Optionnel — âge minimum, diplômes, disponibilité, etc.</p>
+      <textarea formControlName="requirements" rows="3"
+                placeholder="Ex: Âge minimum 18 ans, formation premiers secours souhaitée..."
+                class="w-full px-3 py-2 border border-slate-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-sky-400 transition resize-none"></textarea>
+    </section>
+
+    <!-- Succès -->
+    <div *ngIf="successMessage"
+         class="flex items-center gap-3 p-4 bg-green-50 border border-green-200 rounded-xl text-green-700 text-sm mb-5">
+      <span class="material-icons text-lg">check_circle</span>
+      {{ successMessage }}
+    </div>
+
+    <!-- Erreur -->
+    <div *ngIf="errorMessage"
+         class="flex items-center gap-3 p-4 bg-red-50 border border-red-200 rounded-xl text-red-700 text-sm mb-5">
+      <span class="material-icons text-lg">error_outline</span>
+      {{ errorMessage }}
+    </div>
+
+    <!-- Actions -->
+    <div class="flex items-center justify-between">
+      <button type="button" (click)="onCancel()"
+              class="px-4 py-2 text-sm text-slate-600 hover:bg-slate-100 rounded-lg transition-colors">
+        Annuler
+      </button>
+      <button type="submit"
+              [disabled]="isSubmitting"
+              class="flex items-center gap-2 px-5 py-2 bg-sky-600 hover:bg-sky-700 text-white text-sm font-medium rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed">
+        <div *ngIf="isSubmitting" class="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
+        <span *ngIf="!isSubmitting" class="material-icons text-base">save</span>
+        {{ isSubmitting ? 'Mise à jour...' : 'Enregistrer les modifications' }}
+      </button>
+    </div>
+
+  </form>
+
+</div>

@@ -5,14 +5,6 @@ import { finalize } from 'rxjs/operators';
 import { AuthService } from '../services/auth.service';
 import { CommonModule } from '@angular/common';
 
-// Angular Material Modules
-import { MatCardModule } from '@angular/material/card';
-import { MatFormFieldModule } from '@angular/material/form-field';
-import { MatInputModule } from '@angular/material/input';
-import { MatButtonModule } from '@angular/material/button';
-import { MatIconModule } from '@angular/material/icon';
-import { MatChipsModule } from '@angular/material/chips';
-import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { RouterModule } from '@angular/router';
 
 @Component({
@@ -23,14 +15,7 @@ import { RouterModule } from '@angular/router';
   imports: [
     CommonModule,
     ReactiveFormsModule,
-    RouterModule,
-    MatCardModule,
-    MatFormFieldModule,
-    MatInputModule,
-    MatButtonModule,
-    MatIconModule,
-    MatChipsModule,
-    MatProgressSpinnerModule
+    RouterModule
   ]
 })
 export class OrgLoginComponent implements OnInit {
@@ -99,17 +84,13 @@ export class OrgLoginComponent implements OnInit {
       .pipe(finalize(() => this.isLoading = false))
       .subscribe({
         next: (response) => {
-          // Sauvegarder le token
-          this.authService.saveToken(response.token);
-          console.log(response);
-          // Si user et role sont présents dans la réponse, les sauvegarder
+          // JWT is set as httpOnly cookie by server; store only user/role in localStorage
           if (response.user) {
             this.authService.saveUserData(response);
           }
-          
+
           this.successMessage = 'Connexion réussie ! Redirection...';
           setTimeout(() => {
-            // Rediriger selon le rôle
             this.redirectBasedOnRole(response.user);
           }, 1500);
         },
@@ -140,23 +121,20 @@ export class OrgLoginComponent implements OnInit {
 
   getErrorMessage(fieldName: string): string {
     const field = this.loginForm.get(fieldName);
-    
+
     if (field?.hasError('required')) {
       return 'Ce champ est requis';
     }
-    
     if (field?.hasError('email')) {
       return 'Format d\'email invalide';
     }
-    
     if (field?.hasError('minlength')) {
       return `Minimum ${field.errors?.['minlength'].requiredLength} caractères`;
     }
-    
     if (field?.hasError('maxlength')) {
       return `Maximum ${field.errors?.['maxlength'].requiredLength} caractères`;
     }
-    
+
     return '';
   }
 
@@ -166,14 +144,10 @@ export class OrgLoginComponent implements OnInit {
   }
 
   private redirectBasedOnRole(user: any): void {
-    // Vérifier le rôle de l'utilisateur
     const userRole = user?.role?.toUpperCase();
-    
     if (userRole === 'ORGANIZATION') {
-      // Organisation : rediriger vers la création d'opportunité
       this.router.navigate(['/volunteering/opportunities/create']);
     } else {
-      // Volontaire ou autre : rediriger vers la liste des opportunités
       this.router.navigate(['/volunteering/opportunities']);
     }
   }

@@ -1,42 +1,38 @@
 import { Component, OnInit, OnDestroy } from '@angular/core';
 import { CommonModule } from '@angular/common';
+import { FormsModule } from '@angular/forms';
 import { ActivatedRoute, Router, RouterModule } from '@angular/router';
-import { MatCardModule } from '@angular/material/card';
-import { MatButtonModule } from '@angular/material/button';
-import { MatIconModule } from '@angular/material/icon';
-import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
-import { MatSnackBar } from '@angular/material/snack-bar';
 import { Subject, takeUntil } from 'rxjs';
 
 import { OpportunityService } from '../services/opportunity.service';
 import { CandidatureService } from '../services/candidature.service';
 import { AuthService } from '../../auth/services/auth.service';
-import { Opportunity } from '../../models/opportunity.model';
-import { Application } from '../../models/application.model';
+import { ApplicationStatus } from '../../models/application.model';
 
 @Component({
   selector: 'app-opportunity-detail',
   standalone: true,
-  imports: [
-    CommonModule,
-    RouterModule,
-    MatCardModule,
-    MatButtonModule,
-    MatIconModule,
-    MatProgressSpinnerModule
-  ],
+  imports: [CommonModule, FormsModule, RouterModule],
   templateUrl: './opportunity-detail.component.html',
   styleUrls: ['./opportunity-detail.component.css']
 })
 export class OpportunityDetailComponent implements OnInit, OnDestroy {
-  
-  opportunity: Opportunity | null = null;
+
+  opportunity: any = null;
   isLoading = false;
   isApplying = false;
   hasApplied = false;
-  applicationStatus: 'PENDING' | 'ACCEPTED' | 'REJECTED' | null = null;
+  applicationStatus: ApplicationStatus | null = null;
   errorMessage = '';
-  
+  successMessage = '';
+
+  // Motivation form state
+  showMotivationForm = false;
+  motivationText = '';
+
+  // Galerie photos
+  selectedImage: string | null = null;
+
   private destroy$ = new Subject<void>();
 
   constructor(
@@ -44,8 +40,7 @@ export class OpportunityDetailComponent implements OnInit, OnDestroy {
     private router: Router,
     private opportunityService: OpportunityService,
     private candidatureService: CandidatureService,
-    private authService: AuthService,
-    private snackBar: MatSnackBar
+    private authService: AuthService
   ) {}
 
   ngOnInit(): void {
@@ -61,147 +56,123 @@ export class OpportunityDetailComponent implements OnInit, OnDestroy {
     this.isLoading = true;
     this.errorMessage = '';
 
-    // Pour l'instant, on récupère l'ID depuis les paramètres de route
-    // Dans un vrai projet, on aurait un service pour récupérer une opportunité par ID
-    const opportunityId = this.route.snapshot.paramMap.get('id');
-    
-    if (!opportunityId) {
+    const id = this.route.snapshot.paramMap.get('id');
+    if (!id) {
       this.errorMessage = 'ID d\'opportunité manquant';
       this.isLoading = false;
       return;
     }
 
-    // Simulation de chargement d'opportunité
-    // Dans un vrai projet, on appellerait opportunityService.getOpportunityById(opportunityId)
-    this.simulateOpportunityLoad(opportunityId);
-  }
-
-  private simulateOpportunityLoad(opportunityId: string): void {
-    // Simulation d'une opportunité pour les tests
-    setTimeout(() => {
-      this.opportunity = {
-        id: opportunityId,
-        title: 'Aide aux personnes âgées',
-        description: 'Nous recherchons des bénévoles pour accompagner les personnes âgées dans leurs activités quotidiennes et leur apporter du réconfort.',
-        location: 'Centre communautaire de Paris',
-        town: 'Paris',
-        startDate: '2024-02-01',
-        endDate: '2024-12-31',
-        requirements: 'Patience, empathie et disponibilité le weekend',
-        orgId: 1,
-        skillsRequired: [
-          { name: 'Empathie', level: 'Intermédiaire' },
-          { name: 'Communication', level: 'Avancé' }
-        ],
-        categories: [
-          { id: '1', name: 'Social' }
-        ]
-      };
-      this.isLoading = false;
-      this.checkExistingApplication();
-    }, 1000);
+    this.opportunityService.getOpportunityById(id)
+      .pipe(takeUntil(this.destroy$))
+      .subscribe({
+        next: (opp) => {
+          this.opportunity = opp;
+          this.isLoading = false;
+          this.checkExistingApplication();
+        },
+        error: (err) => {
+          this.errorMessage = err.message || 'Impossible de charger cette opportunité';
+          this.isLoading = false;
+        }
+      });
   }
 
   private checkExistingApplication(): void {
     const user = this.authService.getUserData();
-    if (user && this.opportunity?.id) {
-      // Vérifier si l'utilisateur a déjà postulé
-      this.candidatureService.getVolunteerApplications(user.id.toString())
-        .pipe(takeUntil(this.destroy$))
-        .subscribe({
-          next: (applications) => {
-            const existingApplication = applications.find(app => 
-              app.opportunityId === this.opportunity?.id
-            );
-            if (existingApplication) {
-              this.hasApplied = true;
-              this.applicationStatus = existingApplication.status;
-            }
-          },
-          error: (error) => {
-            // En cas d'erreur, on continue sans bloquer l'affichage
-            console.warn('Impossible de vérifier les candidatures existantes:', error);
+    if (!user || !this.opportunity?.id) return;
+
+    this.candidatureService.getVolunteerApplications()
+      .pipe(takeUntil(this.destroy$))
+      .subscribe({
+        next: (apps) => {
+          const existing = apps.find(a => a.opportunityId === this.opportunity?.id);
+          if (existing) {
+            this.hasApplied = true;
+            this.applicationStatus = existing.status;
           }
-        });
-    }
+        },
+        error: () => {}
+      });
   }
 
-  apply(): void {
-    if (!this.opportunity?.id || this.isApplying || this.hasApplied) {
+  openMotivationForm(): void {
+    const user = this.authService.getUserData();
+    if (!user) {
+      this.errorMessage = 'Vous devez être connecté pour postuler.';
       return;
     }
+    this.showMotivationForm = true;
+    this.errorMessage = '';
+  }
+
+  cancelMotivation(): void {
+    this.showMotivationForm = false;
+    this.motivationText = '';
+  }
+
+  confirmApply(): void {
+    if (!this.opportunity?.id || this.isApplying || this.hasApplied) return;
 
     const user = this.authService.getUserData();
     if (!user) {
-      this.showErrorMessage('Vous devez être connecté pour postuler');
+      this.errorMessage = 'Vous devez être connecté pour postuler.';
       return;
     }
 
     this.isApplying = true;
     this.errorMessage = '';
 
-    this.candidatureService.applyToOpportunity(this.opportunity.id, user.id.toString())
+    this.candidatureService.applyToOpportunity(
+      this.opportunity.id,
+      user.userId!.toString(),
+      this.motivationText || undefined
+    )
       .pipe(takeUntil(this.destroy$))
       .subscribe({
-        next: (response) => {
+        next: () => {
           this.isApplying = false;
           this.hasApplied = true;
           this.applicationStatus = 'PENDING';
-          this.showSuccessMessage();
+          this.showMotivationForm = false;
+          this.motivationText = '';
+          this.successMessage = 'Votre candidature a été soumise avec succès !';
         },
-        error: (error) => {
+        error: (err) => {
           this.isApplying = false;
-          this.errorMessage = error.message;
-          this.showErrorMessage(error.message);
+          this.showMotivationForm = false;
+          this.errorMessage = err.message || 'Erreur lors de la candidature.';
         }
       });
   }
 
-  private showSuccessMessage(): void {
-    this.snackBar.open('Votre candidature a été soumise avec succès ✅', 'Fermer', {
-      duration: 5000,
-      horizontalPosition: 'center',
-      verticalPosition: 'top',
-      panelClass: ['success-snackbar']
-    });
+  statusLabel(status: ApplicationStatus): string {
+    const labels: Record<ApplicationStatus, string> = {
+      PENDING: 'En attente',
+      VIEW: 'Consultée',
+      ACCEPTED: 'Acceptée',
+      REJECTED: 'Rejetée',
+      CLOSED: 'Fermée'
+    };
+    return labels[status] ?? status;
   }
 
-  private showErrorMessage(message: string): void {
-    this.snackBar.open(message, 'Fermer', {
-      duration: 5000,
-      horizontalPosition: 'center',
-      verticalPosition: 'top',
-      panelClass: ['error-snackbar']
-    });
+  statusClass(status: ApplicationStatus): string {
+    const classes: Record<ApplicationStatus, string> = {
+      PENDING: 'bg-amber-50 text-amber-700 border-amber-200',
+      VIEW: 'bg-sky-50 text-sky-700 border-sky-200',
+      ACCEPTED: 'bg-green-50 text-green-700 border-green-200',
+      REJECTED: 'bg-red-50 text-red-700 border-red-200',
+      CLOSED: 'bg-slate-50 text-slate-500 border-slate-200'
+    };
+    return classes[status] ?? 'bg-slate-50 text-slate-500 border-slate-200';
   }
 
-  getApplicationStatusText(): string {
-    switch (this.applicationStatus) {
-      case 'PENDING':
-        return 'En attente';
-      case 'ACCEPTED':
-        return 'Acceptée';
-      case 'REJECTED':
-        return 'Refusée';
-      default:
-        return '';
-    }
-  }
-
-  getApplicationStatusColor(): string {
-    switch (this.applicationStatus) {
-      case 'PENDING':
-        return 'accent';
-      case 'ACCEPTED':
-        return 'primary';
-      case 'REJECTED':
-        return 'warn';
-      default:
-        return 'primary';
-    }
+  get isOrganization(): boolean {
+    return this.authService.getUserData()?.role === 'ORGANIZATION';
   }
 
   onBackToList(): void {
-    this.router.navigate(['/opportunities']);
+    this.router.navigate(['/volunteering/opportunities']);
   }
 }

@@ -1,85 +1,62 @@
 import { Component, OnInit, OnDestroy } from '@angular/core';
-import { FormGroup, FormBuilder, Validators, ReactiveFormsModule, FormArray, AbstractControl } from '@angular/forms';
+import { FormGroup, FormBuilder, Validators, ReactiveFormsModule, FormArray } from '@angular/forms';
 import { CommonModule } from '@angular/common';
-import { Router } from '@angular/router';
-import { MatSnackBar } from '@angular/material/snack-bar';
-import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
-import { MatButtonModule } from '@angular/material/button';
-import { MatFormFieldModule } from '@angular/material/form-field';
-import { MatInputModule } from '@angular/material/input';
-import { MatSelectModule } from '@angular/material/select';
-import { MatChipsModule } from '@angular/material/chips';
-import { MatIconModule } from '@angular/material/icon';
-import { MatCardModule } from '@angular/material/card';
-import { MatDividerModule } from '@angular/material/divider';
-import { MatDatepickerModule } from '@angular/material/datepicker';
-import { MatNativeDateModule } from '@angular/material/core';
-import { MatCheckboxModule } from '@angular/material/checkbox';
-import { MatTooltipModule } from '@angular/material/tooltip';
+import { Router, RouterModule } from '@angular/router';
 import { Subject, takeUntil } from 'rxjs';
 
-import { ErrorComponent } from "../../shared/error/error/error.component";
 import { OpportunityService } from '../services/opportunity.service';
+import { AuthService } from '../../auth/services/auth.service';
 import { Category } from '../../models/category.model';
-import { Skill, SkillFormGroup } from '../../models/skill.model';
 import { CreateOpportunityRequest } from '../../models/opportunity.model';
+import { ImageUploadService } from '../../shared/services/image-upload.service';
 
 @Component({
   selector: 'app-opportunity-create',
   standalone: true,
-  imports: [
-    CommonModule,
-    ReactiveFormsModule,
-    ErrorComponent,
-    MatProgressSpinnerModule,
-    MatButtonModule,
-    MatFormFieldModule,
-    MatInputModule,
-    MatSelectModule,
-    MatChipsModule,
-    MatIconModule,
-    MatCardModule,
-    MatDividerModule,
-    MatDatepickerModule,
-    MatNativeDateModule,
-    MatCheckboxModule,
-    MatTooltipModule
-  ],
+  imports: [CommonModule, ReactiveFormsModule, RouterModule],
   templateUrl: './opportunity-create.component.html',
   styleUrl: './opportunity-create.component.css'
 })
 export class OpportunityCreateComponent implements OnInit, OnDestroy {
-  
-  // Propriétés du composant
-  public opportunityForm!: FormGroup;
-  public categories: Category[] = [];
-  public isLoading = false;
-  public isSubmitting = false;
-  public errorMessage = '';
-  public successMessage = '';
-  
-  // Niveaux de compétences disponibles
-  public skillLevels = [
+
+  opportunityForm!: FormGroup;
+  categories: Category[] = [];
+  isLoading = false;
+  isSubmitting = false;
+  errorMessage = '';
+  successMessage = '';
+
+  readonly maxImages = 3;
+  imageUrls: string[] = [];
+  isUploadingImage = false;
+  imageError = '';
+
+  readonly skillLevels = [
     { value: 'BEGINNER', label: 'Débutant' },
     { value: 'INTERMEDIATE', label: 'Intermédiaire' },
     { value: 'ADVANCED', label: 'Avancé' },
     { value: 'EXPERT', label: 'Expert' }
   ];
 
-  // Subject pour la gestion de la destruction du composant
+  readonly workTypes = [
+    { value: 'ON_SITE', label: 'Sur place' },
+    { value: 'REMOTE', label: 'À distance' },
+    { value: 'HYBRID', label: 'Hybride' }
+  ];
+
   private destroy$ = new Subject<void>();
 
   constructor(
     private fb: FormBuilder,
     private opportunityService: OpportunityService,
-    private router: Router,
-    private snackBar: MatSnackBar
+    private authService: AuthService,
+    private imageUploadService: ImageUploadService,
+    private router: Router
   ) {}
 
   ngOnInit(): void {
-    this.initializeForm();
+    this.initForm();
     this.loadCategories();
-    this.setupFormValidation();
   }
 
   ngOnDestroy(): void {
@@ -87,226 +64,180 @@ export class OpportunityCreateComponent implements OnInit, OnDestroy {
     this.destroy$.complete();
   }
 
-  /**
-   * Initialise le formulaire réactif avec toutes les validations
-   */
-  private initializeForm(): void {
+  private initForm(): void {
     this.opportunityForm = this.fb.group({
-      title: ['', [
-        Validators.required, 
-        Validators.maxLength(100),
-        Validators.minLength(3)
-      ]],
-      description: ['', [
-        Validators.required,
-        Validators.minLength(20),
-        Validators.maxLength(2000)
-      ]],
-      location: ['', [
-        Validators.required,
-        Validators.maxLength(255)
-      ]],
-      town: ['', [
-        Validators.required,
-        Validators.maxLength(100)
-      ]],
-      startDate: ['', [Validators.required]],
-      endDate: ['', [Validators.required]],
-      requirements: ['', [
-        Validators.maxLength(1000)
-      ]],
-      skillsRequired: this.fb.array([]),
-      categories: [[], [Validators.required, Validators.minLength(1)]]
-    });
+      title: ['', [Validators.required, Validators.minLength(3), Validators.maxLength(100)]],
+      description: ['', [Validators.required, Validators.minLength(20), Validators.maxLength(2000)]],
+      location: ['', Validators.maxLength(255)],
+      town: ['', [Validators.required, Validators.maxLength(100)]],
+      startDate: ['', Validators.required],
+      endDate: ['', Validators.required],
+      requirements: ['', Validators.maxLength(1000)],
+      workType: [''],
+      volunteersNeeded: [null, [Validators.min(1), Validators.max(1000)]],
+      categoryNames: [[], this.minArrayLength(1)],
+      skills: this.fb.array([])
+    }, { validators: this.dateRangeValidator });
   }
 
-  /**
-   * Configure les validations croisées (startDate <= endDate)
-   */
-  private setupFormValidation(): void {
-    // Validation croisée pour les dates
-    this.opportunityForm.valueChanges
+  onImageSelected(event: Event): void {
+    const input = event.target as HTMLInputElement;
+    const file = input.files?.[0];
+    input.value = '';
+    if (!file || this.isUploadingImage) return;
+
+    this.imageError = '';
+    if (this.imageUrls.length >= this.maxImages) {
+      this.imageError = `Maximum ${this.maxImages} photos par opportunité.`;
+      return;
+    }
+
+    const validationError = this.imageUploadService.validate(file);
+    if (validationError) {
+      this.imageError = validationError;
+      return;
+    }
+
+    this.isUploadingImage = true;
+    this.imageUploadService.upload(file)
       .pipe(takeUntil(this.destroy$))
-      .subscribe(() => {
-        this.validateDates();
+      .subscribe({
+        next: (res) => {
+          this.imageUrls = [...this.imageUrls, res.url];
+          this.isUploadingImage = false;
+        },
+        error: (err) => {
+          this.imageError = err.message;
+          this.isUploadingImage = false;
+        }
       });
   }
 
-  /**
-   * Valide que la date de début est antérieure à la date de fin
-   */
-  private validateDates(): void {
-    const startDate = this.opportunityForm.get('startDate')?.value;
-    const endDate = this.opportunityForm.get('endDate')?.value;
-    
-    if (startDate && endDate && startDate > endDate) {
-      this.opportunityForm.get('endDate')?.setErrors({ invalidDateRange: true });
-    } else {
-      this.opportunityForm.get('endDate')?.setErrors(null);
-    }
+  removeImage(index: number): void {
+    this.imageUrls = this.imageUrls.filter((_, i) => i !== index);
   }
 
-  /**
-   * Charge la liste des catégories depuis l'API
-   */
+  private dateRangeValidator(group: FormGroup) {
+    const start = group.get('startDate')?.value;
+    const end = group.get('endDate')?.value;
+    if (start && end && start > end) {
+      return { dateRange: true };
+    }
+    return null;
+  }
+
+  private minArrayLength(min: number) {
+    return (control: any) => {
+      return control.value?.length >= min ? null : { minLength: true };
+    };
+  }
+
   private loadCategories(): void {
     this.isLoading = true;
     this.opportunityService.getCategories()
       .pipe(takeUntil(this.destroy$))
       .subscribe({
-        next: (categories) => {
-          this.categories = categories;
+        next: (cats) => {
+          this.categories = cats.filter((cat, i, all) => all.findIndex(c => c.name === cat.name) === i);
           this.isLoading = false;
         },
-        error: (error) => {
-          this.errorMessage = `Erreur lors du chargement des catégories: ${error.message}`;
-          this.isLoading = false;
+        error: (err) => { this.errorMessage = err.message; this.isLoading = false; }
+      });
+  }
+
+  get skillsArray(): FormArray {
+    return this.opportunityForm.get('skills') as FormArray;
+  }
+
+  addSkill(): void {
+    this.skillsArray.push(this.fb.group({
+      name: ['', [Validators.required, Validators.maxLength(50)]],
+      level: ['BEGINNER', Validators.required]
+    }));
+  }
+
+  removeSkill(i: number): void {
+    this.skillsArray.removeAt(i);
+  }
+
+  onCategoryChange(catName: string, checked: boolean): void {
+    const current: string[] = this.opportunityForm.get('categoryNames')!.value;
+    const updated = checked ? [...current, catName] : current.filter(n => n !== catName);
+    this.opportunityForm.get('categoryNames')!.setValue(updated);
+    this.opportunityForm.get('categoryNames')!.markAsTouched();
+  }
+
+  isCategorySelected(catName: string): boolean {
+    return this.opportunityForm.get('categoryNames')!.value.includes(catName);
+  }
+
+  onSubmit(): void {
+    this.markAllTouched();
+    if (this.opportunityForm.invalid || this.isSubmitting) {
+      this.errorMessage = 'Veuillez corriger les erreurs avant de soumettre.';
+      return;
+    }
+
+    this.isSubmitting = true;
+    this.errorMessage = '';
+    this.successMessage = '';
+
+    const v = this.opportunityForm.value;
+    const orgId = Number(this.authService.getUserData()?.userId);
+
+    if (!orgId) {
+      this.errorMessage = 'Impossible de récupérer votre identifiant organisation. Reconnectez-vous.';
+      this.isSubmitting = false;
+      return;
+    }
+
+    const payload: CreateOpportunityRequest = {
+      title: v.title,
+      description: v.description,
+      location: v.location || undefined,
+      town: v.town,
+      startDate: v.startDate,
+      endDate: v.endDate,
+      requirements: v.requirements || undefined,
+      orgId,
+      categoryNames: v.categoryNames,
+      skillNames: (v.skills as { name: string; level: string }[]).map(s => s.name).filter(Boolean),
+      workType: v.workType || undefined,
+      volunteersNeeded: v.volunteersNeeded || undefined,
+      imageUrls: this.imageUrls.length ? this.imageUrls : undefined
+    };
+
+    this.opportunityService.createOpportunity(payload)
+      .pipe(takeUntil(this.destroy$))
+      .subscribe({
+        next: () => {
+          this.isSubmitting = false;
+          this.successMessage = 'Opportunité créée avec succès !';
+          setTimeout(() => this.router.navigate(['/volunteering/opportunities/my']), 1500);
+        },
+        error: (err) => {
+          this.isSubmitting = false;
+          this.errorMessage = err.message || 'Erreur lors de la création.';
         }
       });
   }
 
-  /**
-   * Getter pour accéder au FormArray des compétences
-   */
-  get skillsRequiredArray(): FormArray {
-    return this.opportunityForm.get('skillsRequired') as FormArray;
+  private markAllTouched(): void {
+    this.opportunityForm.markAllAsTouched();
+    this.skillsArray.controls.forEach(c => (c as FormGroup).markAllAsTouched());
   }
 
-  /**
-   * Ajoute une nouvelle compétence au formulaire
-   */
-  addSkill(): void {
-    const skillGroup = this.fb.group({
-      name: ['', [Validators.required, Validators.maxLength(50)]],
-      level: ['BEGINNER', [Validators.required]]
-    });
-
-    this.skillsRequiredArray.push(skillGroup);
-  }
-
-  /**
-   * Supprime une compétence du formulaire
-   */
-  removeSkill(index: number): void {
-    this.skillsRequiredArray.removeAt(index);
-  }
-
-  /**
-   * Soumet le formulaire
-   */
-  onSubmit(): void {
-    if (this.opportunityForm.valid && !this.isSubmitting) {
-      this.isSubmitting = true;
-      this.errorMessage = '';
-
-      // Préparation des données pour l'API
-      const formValue = this.opportunityForm.value;
-      const opportunityData: CreateOpportunityRequest = {
-        title: formValue.title,
-        description: formValue.description,
-        location: formValue.location,
-        town: formValue.town,
-        startDate: formValue.startDate,
-        endDate: formValue.endDate,
-        requirements: formValue.requirements || '',
-        orgId: 1, // TODO: Récupérer depuis le service d'authentification
-        skillsRequired: formValue.skillsRequired,
-        categories: formValue.categories
-      };
-
-      // Appel au service
-      this.opportunityService.createOpportunity(opportunityData)
-        .pipe(takeUntil(this.destroy$))
-        .subscribe({
-          next: (response) => {
-            this.isSubmitting = false;
-            this.successMessage = 'Opportunité créée avec succès!';
-            this.showSuccessMessage();
-          },
-          error: (error) => {
-            this.isSubmitting = false;
-            this.errorMessage = error.message;
-            this.showErrorMessage();
-          }
-        });
-    } else {
-      this.markFormGroupTouched();
-      this.errorMessage = 'Veuillez corriger les erreurs dans le formulaire.';
-    }
-  }
-
-  /**
-   * Marque tous les champs du formulaire comme touchés pour afficher les erreurs
-   */
-  private markFormGroupTouched(): void {
-    Object.keys(this.opportunityForm.controls).forEach(key => {
-      const control = this.opportunityForm.get(key);
-      if (control instanceof FormGroup) {
-        this.markFormGroupTouched();
-      } else {
-        control?.markAsTouched();
-      }
-    });
-  }
-
-  /**
-   * Affiche un message de succès
-   */
-  private showSuccessMessage(): void {
-    this.snackBar.open(this.successMessage, 'Fermer', {
-      duration: 5000,
-      horizontalPosition: 'center',
-      verticalPosition: 'top',
-      panelClass: ['success-snackbar']
-    });
-  }
-
-  /**
-   * Affiche un message d'erreur
-   */
-  private showErrorMessage(): void {
-    this.snackBar.open(this.errorMessage, 'Fermer', {
-      duration: 8000,
-      horizontalPosition: 'center',
-      verticalPosition: 'top',
-      panelClass: ['error-snackbar']
-    });
-  }
-
-  /**
-   * Annule la création et retourne à la liste
-   */
   onCancel(): void {
-    this.router.navigate(['/opportunities']);
+    this.router.navigate(['/volunteering/opportunities/my']);
   }
 
-  /**
-   * Vérifie si un champ a des erreurs
-   */
-  hasError(controlName: string, errorType: string): boolean {
-    const control = this.opportunityForm.get(controlName);
-    return control ? control.hasError(errorType) && control.touched : false;
+  hasError(field: string, error: string): boolean {
+    const c = this.opportunityForm.get(field);
+    return !!(c?.hasError(error) && c.touched);
   }
 
-  /**
-   * Obtient le message d'erreur pour un champ
-   */
-  getErrorMessage(controlName: string): string {
-    const control = this.opportunityForm.get(controlName);
-    if (control && control.errors && control.touched) {
-      if (control.errors['required']) {
-        return 'Ce champ est obligatoire';
-      }
-      if (control.errors['minlength']) {
-        return `Minimum ${control.errors['minlength'].requiredLength} caractères`;
-      }
-      if (control.errors['maxlength']) {
-        return `Maximum ${control.errors['maxlength'].requiredLength} caractères`;
-      }
-      if (control.errors['invalidDateRange']) {
-        return 'La date de fin doit être postérieure à la date de début';
-      }
-    }
-    return '';
+  get dateRangeError(): boolean {
+    return !!(this.opportunityForm.hasError('dateRange') &&
+      this.opportunityForm.get('endDate')?.touched);
   }
 }
