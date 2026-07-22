@@ -1,6 +1,7 @@
-import { Injectable, OnDestroy } from '@angular/core';
+import { Inject, Injectable, NgZone, OnDestroy, PLATFORM_ID } from '@angular/core';
+import { isPlatformBrowser } from '@angular/common';
 import { BehaviorSubject, Subscription, of, timer } from 'rxjs';
-import { catchError, switchMap, take } from 'rxjs/operators';
+import { catchError, take } from 'rxjs/operators';
 
 import { MessageService } from './message.service';
 import { AuthService } from '../../auth/services/auth.service';
@@ -25,7 +26,9 @@ export class MessageStateService implements OnDestroy {
 
   constructor(
     private messageService: MessageService,
-    private authService: AuthService
+    private authService: AuthService,
+    private ngZone: NgZone,
+    @Inject(PLATFORM_ID) private platformId: Object
   ) {}
 
   /** Recharge une fois les résumés (appelé à la navigation et après envoi). */
@@ -43,17 +46,22 @@ export class MessageStateService implements OnDestroy {
       });
   }
 
-  /** Démarre le polling 60 s (idempotent). */
+  /**
+   * Démarre le polling 60 s (idempotent), navigateur uniquement.
+   * Le timer récurrent tourne HORS de la zone Angular : sinon il maintient
+   * l'app perpétuellement « instable » et bloque la fin de l'hydratation SSR
+   * (NG0506), ce qui laisse à l'écran le DOM serveur (déconnecté). Chaque tick
+   * ré-entre dans la zone le temps de rafraîchir l'état.
+   */
   startPolling(): void {
-    if (this.pollSub) {
+    if (this.pollSub || !isPlatformBrowser(this.platformId)) {
       return;
     }
-    this.pollSub = timer(0, POLL_INTERVAL_MS)
-      .pipe(switchMap(() => {
-        this.refresh();
-        return of(null);
-      }))
-      .subscribe();
+    this.refresh();
+    this.pollSub = this.ngZone.runOutsideAngular(() =>
+      timer(POLL_INTERVAL_MS, POLL_INTERVAL_MS)
+        .subscribe(() => this.ngZone.run(() => this.refresh()))
+    );
   }
 
   stopPolling(): void {
