@@ -1,0 +1,48 @@
+<div class="thread-page">
+  <div class="thread-card">
+    <div class="thread-header">
+      <h1>Messages</h1>
+      <a *ngIf="opportunityId" [routerLink]="['/volunteering/opportunities', opportunityId]" class="opportunity-link">
+        Voir l'offre
+      </a>
+    </div>
+
+    <div *ngIf="readOnly" class="readonly-banner">
+      Candidature clôturée — ce fil est en lecture seule.
+    </div>
+
+    <div *ngIf="errorMessage" class="error-banner">{{ errorMessage }}</div>
+
+    <div class="messages" *ngIf="!loading; else loadingTpl">
+      <p *ngIf="messages.length === 0" class="empty-state">
+        {{ isVolunteer
+            ? "L'organisation ne vous a pas encore contacté."
+            : "Aucun message pour l'instant — écrivez le premier !" }}
+      </p>
+      <div *ngFor="let message of messages"
+           class="bubble-row"
+           [class.mine]="isMine(message)">
+        <div class="bubble" [class.bubble-mine]="isMine(message)">
+          <p class="bubble-content">{{ message.content }}</p>
+          <span class="bubble-time">{{ message.sentAt | date:'dd/MM/yyyy HH:mm' }}</span>
+        </div>
+      </div>
+    </div>
+    <ng-template #loadingTpl>
+      <p class="empty-state">Chargement de la conversation…</p>
+    </ng-template>
+
+    <form class="composer" (ngSubmit)="onSend()" *ngIf="!readOnly">
+      <textarea
+        name="draft"
+        [(ngModel)]="draft"
+        rows="2"
+        maxlength="2000"
+        placeholder="Écrivez votre message…"
+        (keydown.enter)="$event.preventDefault(); onSend()"></textarea>
+      <button type="submit" [disabled]="!draft.trim() || sending">
+        {{ sending ? 'Envoi…' : 'Envoyer' }}
+      </button>
+    </form>
+  </div>
+</div>
