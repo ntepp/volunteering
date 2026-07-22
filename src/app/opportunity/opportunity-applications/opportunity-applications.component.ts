@@ -7,6 +7,7 @@ import { catchError, map } from 'rxjs/operators';
 import { CandidatureService } from '../services/candidature.service';
 import { OpportunityService } from '../services/opportunity.service';
 import { VolunteerProfile, VolunteerProfileService } from '../../user/services/volunteer-profile.service';
+import { MessageStateService } from '../../messaging/services/message-state.service';
 import { ApplicationResponse, ApplicationStatus } from '../../models/application.model';
 
 @Component({
@@ -26,6 +27,7 @@ export class OpportunityApplicationsComponent implements OnInit, OnDestroy {
   isLoading = false;
   errorMessage = '';
   updatingId: number | null = null;
+  messageSummaries = new Map<number, number>(); // candidatureId -> unreadCount
 
   private destroy$ = new Subject<void>();
 
@@ -34,13 +36,24 @@ export class OpportunityApplicationsComponent implements OnInit, OnDestroy {
     private router: Router,
     private candidatureService: CandidatureService,
     private opportunityService: OpportunityService,
-    private volunteerProfileService: VolunteerProfileService
+    private volunteerProfileService: VolunteerProfileService,
+    private messageState: MessageStateService
   ) {}
 
   ngOnInit(): void {
     this.opportunityId = this.route.snapshot.paramMap.get('id') ?? '';
     this.loadTitle();
     this.loadApplications();
+    this.messageState.refresh();
+    this.messageState.summaries$
+      .pipe(takeUntil(this.destroy$))
+      .subscribe(summaries => {
+        this.messageSummaries = new Map(summaries.map(s => [s.candidatureId, s.unreadCount]));
+      });
+  }
+
+  unreadFor(candidatureId: string): number {
+    return this.messageSummaries.get(Number(candidatureId)) ?? 0;
   }
 
   ngOnDestroy(): void {
