@@ -6,6 +6,7 @@ import { OpportunityApplicationsComponent } from './opportunity-applications.com
 import { CandidatureService } from '../services/candidature.service';
 import { OpportunityService } from '../services/opportunity.service';
 import { VolunteerProfileService } from '../../user/services/volunteer-profile.service';
+import { MessageStateService } from '../../messaging/services/message-state.service';
 import { ApplicationResponse } from '../../models/application.model';
 
 describe('OpportunityApplicationsComponent', () => {
@@ -14,6 +15,7 @@ describe('OpportunityApplicationsComponent', () => {
   let candidatureService: jasmine.SpyObj<CandidatureService>;
   let opportunityService: jasmine.SpyObj<OpportunityService>;
   let volunteerProfileService: jasmine.SpyObj<VolunteerProfileService>;
+  let messageStateService: jasmine.SpyObj<MessageStateService>;
 
   const now = Date.now();
   const daysAgo = (d: number) => new Date(now - d * 24 * 60 * 60 * 1000).toISOString();
@@ -30,6 +32,7 @@ describe('OpportunityApplicationsComponent', () => {
     candidatureService = jasmine.createSpyObj('CandidatureService', ['getOpportunityApplications', 'patchStatus']);
     opportunityService = jasmine.createSpyObj('OpportunityService', ['getOpportunityById']);
     volunteerProfileService = jasmine.createSpyObj('VolunteerProfileService', ['getPublicProfileById']);
+    messageStateService = jasmine.createSpyObj('MessageStateService', ['refresh'], { summaries$: of([]) });
 
     candidatureService.getOpportunityApplications.and.returnValue(of(apps));
     opportunityService.getOpportunityById.and.returnValue(of({
@@ -45,6 +48,7 @@ describe('OpportunityApplicationsComponent', () => {
         { provide: CandidatureService, useValue: candidatureService },
         { provide: OpportunityService, useValue: opportunityService },
         { provide: VolunteerProfileService, useValue: volunteerProfileService },
+        { provide: MessageStateService, useValue: messageStateService },
         { provide: ActivatedRoute, useValue: { snapshot: { paramMap: new Map([['id', 'opp1']]) } } }
       ]
     });

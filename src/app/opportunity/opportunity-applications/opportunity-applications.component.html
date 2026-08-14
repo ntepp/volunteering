@@ -192,6 +192,17 @@
 
         <!-- Actions -->
         <div class="flex flex-col gap-2 shrink-0">
+          <a [routerLink]="['/messages', app.id]"
+             title="Contacter le candidat"
+             class="flex items-center gap-1.5 px-3 py-1.5 border border-sky-200 text-sky-600 text-xs font-medium rounded-lg hover:bg-sky-50 transition-colors">
+            <span class="material-icons text-sm">mail_outline</span>
+            Contacter
+            <span *ngIf="unreadFor(app.id) > 0"
+                  class="min-w-[16px] h-4 px-1 bg-warm-500 text-white text-[10px] font-bold rounded-full flex items-center justify-center leading-none">
+              {{ unreadFor(app.id) }}
+            </span>
+          </a>
+
           <button *ngIf="app.status !== 'VIEW' && app.status !== 'ACCEPTED' && app.status !== 'REJECTED'"
                   (click)="patchStatus(app, 'VIEW')"
                   [disabled]="updatingId === +app.id"

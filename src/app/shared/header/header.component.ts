@@ -7,6 +7,7 @@ import { AuthService } from '../../auth/services/auth.service';
 import { VolunteerProfileService } from '../../user/services/volunteer-profile.service';
 import { OrgProfileService } from '../../user/services/org-profile.service';
 import { NotificationStateService } from '../../notification/services/notification-state.service';
+import { MessageStateService } from '../../messaging/services/message-state.service';
 
 @Component({
   selector: 'app-header',
@@ -25,6 +26,7 @@ export class HeaderComponent implements OnInit, OnDestroy {
   displayName = '';
   avatarUrl: string | null = null;
   unreadCount = 0;
+  messagesUnread = 0;
   isMenuOpen = false;
   isUserMenuOpen = false;
 
@@ -35,6 +37,7 @@ export class HeaderComponent implements OnInit, OnDestroy {
     private volunteerProfileService: VolunteerProfileService,
     private orgProfileService: OrgProfileService,
     private notificationState: NotificationStateService,
+    private messageState: MessageStateService,
     public router: Router
   ) {}
 
@@ -49,14 +52,24 @@ export class HeaderComponent implements OnInit, OnDestroy {
         if (authenticated) {
           this.loadIdentity();
           this.notificationState.refresh();
+          this.messageState.startPolling();
         } else {
           this.notificationState.setUnreadCount(0);
+          this.messageState.stopPolling();
         }
       });
 
     this.notificationState.unreadCount$
       .pipe(takeUntil(this.destroy$))
       .subscribe(count => this.unreadCount = count);
+
+    this.messageState.unreadTotal$
+      .pipe(takeUntil(this.destroy$))
+      .subscribe(count => this.messagesUnread = count);
+  }
+
+  get messagesLink(): string {
+    return this.isOrganization ? '/volunteering/opportunities/my' : '/applications';
   }
 
   ngOnDestroy(): void {

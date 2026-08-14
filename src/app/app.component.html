@@ -1,4 +1,7 @@
-<app-header>   </app-header>
+<!-- ngSkipHydration : le header dépend de l'auth (localStorage, absent au SSR).
+     Le rendu serveur (déconnecté) diverge du client (connecté) ; on laisse donc
+     le header s'hydrater côté navigateur pour éviter un DOM incohérent. -->
+<app-header ngSkipHydration>   </app-header>
 
 <router-outlet />
 

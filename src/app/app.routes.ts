@@ -20,6 +20,7 @@ import { OrgProfileComponent } from './user/org-profile/org-profile.component';
 import { MentionsLegalesComponent } from './shared/pages/mentions-legales/mentions-legales.component';
 import { ContactComponent } from './shared/pages/contact/contact.component';
 import { ForgotPasswordComponent } from './auth/forgot-password/forgot-password.component';
+import { MessageThreadComponent } from './messaging/message-thread/message-thread.component';
 
 export const routes: Routes = [
     {path: '', component: OpportunityListComponent},
@@ -41,5 +42,6 @@ export const routes: Routes = [
     {path: 'profile', component: VolunteerProfileComponent, title: 'Mon profil'},
     {path: 'organization/:id', component: OrgProfileComponent, title: 'Profil organisation'},
     {path: 'mentions-legales', component: MentionsLegalesComponent, title: 'Mentions légales'},
-    {path: 'contact', component: ContactComponent, title: 'Contact'}
+    {path: 'contact', component: ContactComponent, title: 'Contact'},
+    {path: 'messages/:candidatureId', component: MessageThreadComponent, title: 'Messages'}
 ];

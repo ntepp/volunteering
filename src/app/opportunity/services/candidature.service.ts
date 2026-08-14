@@ -45,6 +45,14 @@ export class CandidatureService {
   }
 
   /**
+   * Récupérer une candidature par id (volontaire propriétaire ou org propriétaire de l'offre).
+   */
+  getApplication(applicationId: number): Observable<ApplicationResponse> {
+    return this.http.get<ApplicationResponse>(`${this.apiUrl}/${applicationId}`)
+      .pipe(catchError(this.handleError));
+  }
+
+  /**
    * Historique public des participations d'un volontaire (candidatures acceptées).
    */
   getParticipations(volunteerId: string | number): Observable<PublicParticipation[]> {

@@ -72,11 +72,21 @@
           </p>
         </div>
 
-        <!-- Statut + accès à l'offre -->
+        <!-- Statut + messages + accès à l'offre -->
         <div class="shrink-0 flex items-center gap-2">
           <span class="px-2.5 py-1 text-xs font-medium border rounded-full {{ statusClass(app.status) }}">
             {{ statusLabel(app.status) }}
           </span>
+          <a *ngIf="hasThread(app.id)"
+             [routerLink]="['/messages', app.id]"
+             (click)="$event.stopPropagation()"
+             class="flex items-center gap-1.5 px-2.5 py-1 text-xs font-medium text-sky-600 border border-sky-200 rounded-full hover:bg-sky-50 transition-colors">
+            Messages
+            <span *ngIf="unreadFor(app.id) > 0"
+                  class="min-w-[16px] h-4 px-1 bg-warm-500 text-white text-[10px] font-bold rounded-full flex items-center justify-center leading-none">
+              {{ unreadFor(app.id) }}
+            </span>
+          </a>
           <span class="material-icons text-slate-300 text-lg" aria-hidden="true">chevron_right</span>
         </div>
       </div>

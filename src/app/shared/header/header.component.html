@@ -43,6 +43,17 @@
           </span>
         </a>
 
+        <!-- Messages (org + volontaire) -->
+        <a *ngIf="isAuthenticated" [routerLink]="messagesLink"
+           class="relative p-2 rounded-lg text-slate-600 hover:bg-sky-50 hover:text-sky-600 transition-colors"
+           title="Messages" aria-label="Messages">
+          <span class="material-icons text-xl block">mail_outline</span>
+          <span *ngIf="messagesUnread > 0"
+                class="absolute -top-0.5 -right-0.5 min-w-[18px] h-[18px] px-1 bg-warm-500 text-white text-[10px] font-bold rounded-full flex items-center justify-center leading-none">
+            {{ messagesUnread > 9 ? '9+' : messagesUnread }}
+          </span>
+        </a>
+
         <!-- Connecté -->
         <div *ngIf="isAuthenticated" class="relative user-menu-wrapper">
           <button (click)="toggleUserMenu()"
